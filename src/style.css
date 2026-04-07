@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f8fafc; /* bg-slate-50 */
+  color: #0f172a; /* text-slate-900 */
+}
+
+#app {
+  width: 100%;
+}
+
+@theme {
+  --color-primary: #1E40AF;
+  --color-secondary: #3B82F6;
+  --color-cta: #22C55E;
+}
+
+@utility glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl shadow-xl;
+}
