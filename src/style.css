@@ -6,12 +6,10 @@
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f8fafc; /* bg-slate-50 */
-  color: #0f172a; /* text-slate-900 */
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 #app {
@@ -26,4 +24,32 @@ body {
 
 @utility glass-card {
   @apply bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl shadow-xl;
+}
+
+@utility input-box {
+  @apply w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:ring-2 focus:ring-primary;
+}
+
+@utility primary-btn {
+  @apply w-full rounded-xl bg-primary py-3 text-white font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility tab-btn {
+  @apply w-1/2 py-3 rounded-lg text-sm font-semibold transition;
+}
+
+/* Page Fade Transition (For Lobby / Home Switch) */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-15px) scale(0.98);
 }

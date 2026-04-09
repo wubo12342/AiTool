@@ -56,7 +56,7 @@ try {
         'username' => $user['username'], // 帳號名稱
         'role' => $user['role'], // 權限等級 (0: 一般, 1: 管理員)
         'iat' => time(), // Token 核發時間 (Issued At)
-        'exp' => time() + (60 * 60 * 24), // 設定過期時間為目前的 24 小時後
+        'exp' => time() + (60*60*24), // 設定過期時間為目前的 24 小時後
     ];
 
     // 步驟 4: 使用剛才載入的 JWT 類別來生成加密 Token
