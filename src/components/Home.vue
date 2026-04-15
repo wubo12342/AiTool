@@ -17,14 +17,50 @@ import {
   PenTool, 
   Check 
 } from 'lucide-vue-next';
+import ToolCard from './ToolCard.vue';
+
+const popularTools = [
+  {
+    id: 1,
+    name: 'ChatGPT',
+    description: '地表最強 AI 寫作助理，支援程式碼編寫與各類創意構思。',
+    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=ChatGPT',
+    rating: 4.9,
+    tags: ['文本創作', '免費版']
+  },
+  {
+    id: 2,
+    name: 'Midjourney',
+    description: '藝術級圖像生成工具，將您的想像轉化為超寫實畫作。',
+    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Midjourney',
+    rating: 4.8,
+    tags: ['圖像生成', '付費']
+  },
+  {
+    id: 3,
+    name: 'Jasper AI',
+    description: '專業級行銷文案與部落格寫作工具，內建百種模板。',
+    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Jasper',
+    rating: 4.7,
+    tags: ['行銷文案', '訂閱制']
+  },
+  {
+    id: 4,
+    name: 'Notion AI',
+    description: '融合筆記、表格與 AI 助手，自動整理筆記與摘要內容。',
+    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Notion',
+    rating: 4.9,
+    tags: ['生產力', 'Freemium']
+  }
+];
 </script>
 
 <template>
-  <div class="relative z-10 animate-in fade-in duration-500">
-    <!-- Hero Section -->
-    <section class="relative py-24 overflow-hidden bg-slate-900 text-white rounded-b-[3rem] shadow-2xl">
+  <div class="relative z-10 animate-in fade-in duration-500 text-slate-900">
+    <!-- Hero Section (Legacy Style) -->
+    <section class="relative py-24 overflow-hidden bg-slate-900 text-white">
       <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center opacity-20"></div>
-      <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900 to-slate-900/90"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900 to-slate-900"></div>
 
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
@@ -40,8 +76,8 @@ import {
             <Search class="w-6 h-6" />
           </div>
           <input type="text" placeholder="尋找：寫作助理、圖像生成、影片剪輯..."
-            class="input-box pl-14 pr-32 py-5 bg-white text-slate-900 rounded-2xl shadow-2xl text-lg border-none focus:ring-primary/20">
-          <button class="absolute inset-y-2 right-2 px-6 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-primary/30">
+            class="w-full pl-14 pr-32 py-5 bg-white text-slate-900 rounded-2xl shadow-2xl outline-none focus:ring-4 focus:ring-primary/20 transition-all text-lg border-none">
+          <button class="absolute inset-y-2 right-2 px-6 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all flex items-center gap-2 border-none cursor-pointer">
             搜尋
           </button>
         </div>
@@ -60,7 +96,7 @@ import {
     <!-- Stats / Features Quick Look -->
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="glass-card p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform">
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100">
           <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-primary flex-shrink-0">
             <Zap class="w-6 h-6" />
           </div>
@@ -69,7 +105,7 @@ import {
             <p class="text-slate-500 text-sm">每日更新最前衛的 AI 應用。</p>
           </div>
         </div>
-        <div class="glass-card p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform">
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100">
           <div class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-cta flex-shrink-0">
             <ArrowLeftRight class="w-6 h-6" />
           </div>
@@ -78,7 +114,7 @@ import {
             <p class="text-slate-500 text-sm">直觀的功能與價格對比。</p>
           </div>
         </div>
-        <div class="glass-card p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform">
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100">
           <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
             <Bookmark class="w-6 h-6" />
           </div>
@@ -103,89 +139,12 @@ import {
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <!-- Tool Card 1 -->
-        <div class="glass-card group p-5 flex flex-col h-full hover:shadow-2xl hover:shadow-primary/5 transition-all">
-          <div class="flex justify-between items-start mb-4">
-            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden">
-              <img src="https://api.dicebear.com/7.x/identicon/svg?seed=ChatGPT" alt="Tool Logo" class="w-10 h-10">
-            </div>
-            <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
-              <Star class="w-4 h-4 fill-current" /> 4.9
-            </div>
-          </div>
-          <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors mb-2">ChatGPT</h3>
-          <p class="text-slate-500 text-sm mb-6 flex-grow">地表最強 AI 寫作助理，支援程式碼編寫與各類創意構思。</p>
-          <div class="flex flex-wrap gap-2 mb-6">
-            <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold">文本創作</span>
-            <span class="px-3 py-1 bg-green-50 text-green-600 rounded-md text-xs font-semibold">免費版</span>
-          </div>
-          <a href="#" class="w-full mt-auto py-3 text-center bg-slate-100/50 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all block">
-            查看詳情
-          </a>
-        </div>
-
-        <!-- Tool Card 2 -->
-        <div class="glass-card group p-5 flex flex-col h-full hover:shadow-2xl hover:shadow-primary/5 transition-all">
-          <div class="flex justify-between items-start mb-4">
-            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden">
-              <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Midjourney" alt="Tool Logo" class="w-10 h-10">
-            </div>
-            <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
-              <Star class="w-4 h-4 fill-current" /> 4.8
-            </div>
-          </div>
-          <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors mb-2">Midjourney</h3>
-          <p class="text-slate-500 text-sm mb-6 flex-grow">藝術級圖像生成工具，將您的想像轉化為超寫實畫作。</p>
-          <div class="flex flex-wrap gap-2 mb-6">
-            <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold">圖像生成</span>
-            <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-md text-xs font-semibold">付費</span>
-          </div>
-          <a href="#" class="w-full mt-auto py-3 text-center bg-slate-100/50 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all block">
-            查看詳情
-          </a>
-        </div>
-
-        <!-- Tool Card 3 -->
-        <div class="glass-card group p-5 flex flex-col h-full hover:shadow-2xl hover:shadow-primary/5 transition-all">
-          <div class="flex justify-between items-start mb-4">
-            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden">
-              <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Jasper" alt="Tool Logo" class="w-10 h-10">
-            </div>
-            <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
-              <Star class="w-4 h-4 fill-current" /> 4.7
-            </div>
-          </div>
-          <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors mb-2">Jasper AI</h3>
-          <p class="text-slate-500 text-sm mb-6 flex-grow">專業級行銷文案與部落格寫作工具，內建百種模板。</p>
-          <div class="flex flex-wrap gap-2 mb-6">
-            <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold">行銷文案</span>
-            <span class="px-3 py-1 bg-red-50 text-red-600 rounded-md text-xs font-semibold">訂閱制</span>
-          </div>
-          <a href="#" class="w-full mt-auto py-3 text-center bg-slate-100/50 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all block">
-            查看詳情
-          </a>
-        </div>
-
-        <!-- Tool Card 4 -->
-        <div class="glass-card group p-5 flex flex-col h-full hover:shadow-2xl hover:shadow-primary/5 transition-all">
-          <div class="flex justify-between items-start mb-4">
-            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden">
-              <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Notion" alt="Tool Logo" class="w-10 h-10">
-            </div>
-            <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
-              <Star class="w-4 h-4 fill-current" /> 4.9
-            </div>
-          </div>
-          <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors mb-2">Notion AI</h3>
-          <p class="text-slate-500 text-sm mb-6 flex-grow">融合筆記、表格與 AI 助手，自動整理筆記與摘要內容。</p>
-          <div class="flex flex-wrap gap-2 mb-6">
-            <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold">生產力</span>
-            <span class="px-3 py-1 bg-green-50 text-green-600 rounded-md text-xs font-semibold">Freemium</span>
-          </div>
-          <a href="#" class="w-full mt-auto py-3 text-center bg-slate-100/50 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all block">
-            查看詳情
-          </a>
-        </div>
+        <ToolCard 
+          v-for="tool in popularTools" 
+          :key="tool.id" 
+          v-bind="tool"
+          @click="console.log('Click tool:', tool.name)"
+        />
       </div>
     </section>
 
@@ -276,7 +235,7 @@ import {
           <div class="aspect-square rounded-3xl overflow-hidden shadow-2xl">
             <img src="https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?auto=format&fit=crop&q=80&w=1000" class="w-full h-full object-cover">
           </div>
-          <div class="absolute -bottom-8 -left-8 bg-white/90 backdrop-blur p-6 rounded-2xl shadow-xl flex items-center gap-4 max-w-xs border border-slate-100">
+          <div class="absolute -bottom-8 -left-8 bg-white/95 p-6 rounded-2xl shadow-xl flex items-center gap-4 max-w-xs border border-slate-100">
             <div class="w-10 h-10 rounded-full bg-cta flex items-center justify-center text-white">
               <Check class="w-6 h-6" />
             </div>
@@ -299,7 +258,7 @@ import {
           <button class="bg-cta hover:bg-cta/90 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-cta/20 transition-all cursor-pointer border border-white/10">
             立即投稿工具
           </button>
-          <button class="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-10 py-5 rounded-2xl font-bold text-lg transition-all cursor-pointer">
+          <button class="bg-white/20 hover:bg-white/30 text-white border border-white/20 px-10 py-5 rounded-2xl font-bold text-lg transition-all cursor-pointer">
             加入社群討論
           </button>
         </div>

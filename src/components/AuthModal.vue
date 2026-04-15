@@ -147,7 +147,7 @@ const handleAuth = async () => {
 <template>
   <div
     v-if="isOpen"
-    class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm"
+    class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80"
   >
     <div class="glass-card w-full max-w-md overflow-hidden relative">
       <button
