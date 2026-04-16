@@ -280,7 +280,7 @@ const handleDeleteReview = (id) => {
                   </button>
                 </div>
                 <div class="bg-black/30 p-8 rounded-2xl font-mono text-sm text-blue-100 leading-relaxed whitespace-pre-wrap border border-white/5 shadow-inner min-h-[120px]">
-                  {{ customContext ? `使用者背景與偏好：\n${customContext}` : "尚未填寫任何資訊，建議至少填寫職業背景以免推薦過於笼统。" }}
+                  {{ customContext ? `使用者背景與偏好：\n${customContext}` : "尚未填寫任何資訊，建議至少填寫職業背景以免推薦過於籠統。" }}
                 </div>
                 <div class="mt-8 flex justify-end">
                   <button class="bg-primary hover:bg-primary/90 text-white px-10 py-4 rounded-xl font-bold shadow-xl shadow-primary/20 transition-all flex items-center gap-2 border-none cursor-pointer">
