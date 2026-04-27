@@ -9,11 +9,11 @@ import { Search, ArrowLeftRight, Zap } from 'lucide-vue-next'
     <section class="px-6 pt-20 pb-16 md:pt-28 md:pb-24">
       <div class="max-w-5xl mx-auto text-center">
         <div class="inline-flex items-center rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-sm text-slate-600 shadow-sm mb-8">
-          智慧整合你的 AI 工作流程
+          智慧整合你的 AI 工具
         </div>
 
         <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight mb-8">
-          一站式 AI 工具平台
+          AI 工具平台
         </h1>
 
         <p class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-10">
@@ -25,7 +25,7 @@ import { Search, ArrowLeftRight, Zap } from 'lucide-vue-next'
             @click="emit('openAuth', 'register')"
             class="bg-primary hover:bg-primary/90 text-white px-10 py-5 rounded-2xl font-bold shadow-xl shadow-primary/20 transition-all cursor-pointer border-none text-lg"
           >
-            免費開始使用
+            註冊後開始使用
           </button>
 
           <button

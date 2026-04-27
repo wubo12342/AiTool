@@ -27,32 +27,49 @@ const handleNavigate = (view) => {
 
 <template>
   <div class="relative min-h-screen bg-slate-50">
-    <!-- 背景裝飾：僅在未登入時顯示互動動畫 (開窗時暫停以提升效能) -->
-    <InteractiveBackground v-if="!isLoggedIn" :paused="showAuthModal" />
+    
+    <!-- 背景動畫（未登入才顯示） -->
+    <InteractiveBackground 
+      v-if="!isLoggedIn" 
+      :paused="showAuthModal" 
+    />
 
     <!-- 內容層 -->
     <div class="relative z-10 flex flex-col min-h-screen">
-      <!-- 導覽列 -->
-      <Navbar @openAuth="openAuth" @navigate="handleNavigate" />
+      
+      <!-- Navbar -->
+      <Navbar 
+        @openAuth="openAuth" 
+        @navigate="handleNavigate" 
+      />
 
-      <!-- 主要內容區：未登入顯示大廳，已登入顯示主頁或個人專區 -->
+      <!-- 主內容 -->
       <main class="flex-grow">
-        <Lobby v-if="!isLoggedIn" @openAuth="openAuth" />
+        
+        <!-- 未登入 -->
+        <Lobby 
+          v-if="!isLoggedIn" 
+          @openAuth="openAuth" 
+        />
+
+        <!-- 已登入 -->
         <template v-else>
           <Home v-if="currentView === 'home'" />
           <Profile v-else-if="currentView === 'profile'" />
         </template>
+
       </main>
     </div>
 
-    <!-- 登入/註冊彈跳視窗 -->
+    <!-- 登入 / 註冊 Modal -->
     <AuthModal
       :isOpen="showAuthModal"
       :initialMode="authMode"
       @close="showAuthModal = false"
     />
 
-    <!-- AI 智慧小幫手 -->
-    <AiAssistant />
+    <!-- ✅ AI 助手（登入後才顯示） -->
+    <AiAssistant v-if="isLoggedIn" />
+
   </div>
 </template>
