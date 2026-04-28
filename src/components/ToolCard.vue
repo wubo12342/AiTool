@@ -1,7 +1,9 @@
 <script setup>
-import { Star, Heart } from 'lucide-vue-next';
+import { Star, Heart } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
+  id: [Number, String],
   name: String,
   description: String,
   logoUrl: String,
@@ -18,50 +20,151 @@ const props = defineProps({
     type: Boolean,
     default: false
   }
-});
+})
 
-const emit = defineEmits(['click', 'toggleFavorite']);
+const emit = defineEmits(['click', 'toggleFavorite'])
+
+const router = useRouter()
+
+const goDetail = () => {
+  router.push(`/tool/${props.id}`)
+}
 </script>
 
 <template>
-  <div 
-    class="glass-card group p-5 flex flex-col h-full hover:shadow-2xl hover:shadow-primary/5 transition-all cursor-pointer"
-    @click="emit('click')"
-  >
-    <div class="flex justify-between items-start mb-4">
-      <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden">
-        <img :src="logoUrl" :alt="name" class="w-10 h-10 object-contain">
-      </div>
-      <div class="flex flex-col items-end gap-2">
-        <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
-          <Star class="w-4 h-4 fill-current" /> {{ rating }}
+  <div class="flip-card group cursor-pointer" @click="emit('click')">
+    <div class="flip-card-inner">
+      <!-- 正面 -->
+      <div class="flip-card-face flip-card-front">
+        <div class="flex flex-col h-full">
+          <div class="flex justify-between items-start mb-5">
+            <div class="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden">
+              <img :src="logoUrl" :alt="name" class="w-11 h-11 object-contain">
+            </div>
+
+            <div class="flex flex-col items-end gap-2">
+              <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
+                <Star class="w-4 h-4 fill-current" />
+                {{ rating }}
+              </div>
+
+              <button
+                v-if="showFavoriteButton"
+                @click.stop="emit('toggleFavorite')"
+                class="p-2 rounded-full transition-colors"
+                :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
+                type="button"
+              >
+                <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
+              </button>
+            </div>
+          </div>
+
+          <h3 class="text-xl font-bold text-slate-900 mb-4">
+            {{ name }}
+          </h3>
+
+          <div class="flex flex-wrap gap-2 mt-auto">
+            <span
+              v-for="(tag, index) in tags"
+              :key="index"
+              class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold"
+            >
+              {{ tag }}
+            </span>
+          </div>
         </div>
-        <button 
-          v-if="showFavoriteButton"
-          @click.stop="emit('toggleFavorite')"
-          class="p-2 rounded-full transition-colors"
-          :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
-        >
-          <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
-        </button>
+      </div>
+
+      <!-- 背面 -->
+      <div class="flip-card-face flip-card-back">
+        <div class="flex flex-col h-full">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
+              <img :src="logoUrl" :alt="name" class="w-8 h-8 object-contain">
+            </div>
+
+            <div>
+              <h3 class="text-xl font-bold text-slate-900">
+                {{ name }}
+              </h3>
+              <div class="flex gap-1 text-orange-400 items-center text-sm font-bold mt-1">
+                <Star class="w-4 h-4 fill-current" />
+                {{ rating }}
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm leading-7 text-slate-600 flex-grow">
+            {{ description }}
+          </p>
+
+          <div class="flex flex-wrap gap-2 mt-5">
+            <span
+              v-for="(tag, index) in tags"
+              :key="index"
+              class="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-semibold"
+            >
+              {{ tag }}
+            </span>
+          </div>
+
+          <button
+            @click.stop="goDetail"
+            class="w-full mt-6 py-3 text-center bg-slate-100 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all"
+            type="button"
+          >
+            查看詳情
+          </button>
+        </div>
       </div>
     </div>
-    
-    <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors mb-2">{{ name }}</h3>
-    <p class="text-slate-500 text-sm mb-6 flex-grow line-clamp-2">{{ description }}</p>
-    
-    <div class="flex flex-wrap gap-2 mb-6">
-      <span 
-        v-for="(tag, index) in tags" 
-        :key="index"
-        class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold"
-      >
-        {{ tag }}
-      </span>
-    </div>
-    
-    <button class="w-full mt-auto py-3 text-center bg-slate-100/50 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all block">
-      查看詳情
-    </button>
   </div>
 </template>
+
+<style scoped>
+.flip-card {
+  height: 280px;
+  perspective: 1200px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.7s ease;
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.5rem;
+  padding: 1.25rem;
+  backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow:
+    0 20px 45px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(226, 232, 240, 0.9);
+  backdrop-filter: blur(16px);
+}
+
+.flip-card-front {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.flip-card-back {
+  background: rgba(255, 255, 255, 0.95);
+  transform: rotateY(180deg);
+}
+
+.flip-card:hover .flip-card-face {
+  box-shadow:
+    0 25px 60px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(59, 130, 246, 0.15);
+}
+</style>
