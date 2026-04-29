@@ -1,50 +1,57 @@
-# AI Agent 小幫手實作指南 (提示詞集)
+# AI Agent 智慧小幫手實作與設計規範
 
-這份文件旨在幫助你將本專題中的「AI 智慧小幫手」升級為具備「Function Calling (Agent 工具調用)」能力的進階版本。你可以將以下提示詞輸入給 ChatGPT、Claude 或 Gemini 等 AI，引導它們幫你寫程式。
-
----
-
-## 1. 專案背景資訊 (背景餵食)
-在開始前，請先給 AI 這段背景，讓它了解你的環境：
-「我正在開發一個 AI 工具導航平台，前端使用 Vue.js (Vite)，後端使用 PHP (XAMPP)，資料庫為 MySQL。目前我已經有一個基本的聊天視窗 UI。我希望實作 Function Calling 功能，讓 AI 小幫手能主動查詢資料庫中的『收藏列表』、『工具資料』與『用戶偏好』。請基於此架構協助我。」
+這份文件定義了本專案 AI Agent 的核心邏輯與工具設計。請依照以下規範引導 AI 進行開發。
 
 ---
 
-## 2. 任務提示詞 A：定義 API 溝通協定
-「請幫我設計一個 PHP 腳本 `chat_agent.php` 作為後端中轉站。功能要求如下：
-1. 接收前端傳來的 JSON 請求（含用戶訊息）。
-2. 使用 CURL 發送請求給 [OpenAI/Gemini] API。
-3. 在請求中定義『Tools (Functions)』，例如：
-   - `search_tools($keyword)`: 搜尋資料庫內容。
-   - `get_user_favorites()`: 取得該用戶的收藏清單。
-   - `get_user_prefs()`: 取得用戶的偏好設定。
-4. 當 AI 回傳『工具呼叫請求 (Tool Calls)』時，PHP 要能識別並去執行對應的 SQL 查詢，最後將查詢結果再次傳回給 AI。」
+## 一、 核心開發四原則 (Consensus)
+
+1. **智慧選取 (Tool Selection)**：AI 接收使用者問題後，根據「工具說明書」中的簡介（包含分類、功能、適用場景）自主判斷要調用哪一個 Tool。
+2. **語義對齊 (Enum Constraint)**：在工具定義中明確使用 `enum` 鎖定資料庫的「分類」與「標籤」。若使用者需求不完全匹配，AI 必須自動對應到最接近的母分類，並將具體需求放入 `keyword` 參數中，防止 SQL 查詢因名稱不符而失效。
+3. **範本查詢 (SQL Templates)**：AI 嚴禁從頭撰寫原始 SQL 語法。AI 僅負責提取參數（變數值），由 PHP 後端將參數填入預先寫好的 SQL 樣板中執行，以確保系統安全性 (防範 SQL Injection) 與穩定性。
+4. **增強生成 (Fake RAG)**：後端執行 SQL 後回傳的原始資料（JSON），需再次餵回給 AI。AI 扮演「專業顧問」角色，根據這些數據進行總結、比較與推薦，生成最終對使用者友好的回覆。
 
 ---
 
-## 3. 任務提示詞 B：寫出 Function Schema (工具說明書)
-「請幫我寫出符合 [OpenAI/Gemini] 格式的 Function Schemas。我需要讓 AI 知道它有權限調用以下功能：
-1. `search_database`: 搜尋我的工具分類與標籤（欄位包含 id, name, description, tags）。
-2. `fetch_reviews`: 抓取特定工具的使用者評價。
-3. `read_user_context`: 讀取該用戶在資料庫中存儲的職業背景與使用習慣。
-請確保參數定義清晰，讓 AI 能精確判斷何時該調用。」
+## 二、 Agent 工具集定義 (Tools Design)
+
+### 1. smart_search (智慧條件搜尋)
+- **描述**：當使用者尋找、推薦或探索不認識的工具時使用。
+- **參數**：
+    - `category` (Enum): [圖像生成, 影片剪輯, 文本寫作, 程式助手, 辦公效率]
+    - `keyword` (String): 使用者的具體需求關鍵字。
+- **後端 SQL**：`SELECT * FROM ai_tools JOIN categories ON ... WHERE categories.name = ? AND (description LIKE ? OR tags LIKE ?)`
+
+### 2. get_personal_context (個人化偏好讀取)
+- **描述**：在對話開始或需要精準推薦前，讀取使用者的職業背景與偏好。
+- **數據來源**：`user` 表中的 `system_prompt` 欄位。
+- **場景**：使用者問「推薦適合我的工具」時優先觸發。
+
+### 3. get_community_insights (社群口碑總結)
+- **描述**：抓取工具評論並進行正反面分析。
+- **策略**：回傳「最新 3 筆」+「評分最高 2 筆」+「評分最低 2 筆」訊息，總量不超過 10 筆。
+- **數據來源**：`tool_reviews` 表。
+
+### 4. pricing_comparison_expert (價格方案分析)
+- **描述**：解析工具的 `pricing_plans` (JSON 格式)，比較多款工具的訂閱成本。
+- **數據來源**：`ai_tools` 表中的 `pricing_plans` 欄位。
+
+### 5. trending_tools_retriever (熱門趨勢查詢)
+- **描述**：查詢目前平台收藏數最多的工具榜單。
+- **後端 SQL**：`SELECT tool_ID, COUNT(*) FROM user_likes GROUP BY tool_ID ORDER BY COUNT(*) DESC LIMIT 5`
 
 ---
 
-## 4. 任務提示詞 C：前端 Vue 互動邏輯 (處理遞迴呼叫)
-「在我的 Vue 組件 `AiAssistant.vue` 中，我該如何處理 Agent 的對話循環？
-1. 當 API 回傳的是普通文字，直接顯示。
-2. 當 API 回傳的是工具呼叫（例如 AI 想查資料庫），後端 PHP 處理完後，前端是否需要重新發送請求？請幫我規劃這個流暢的對話循環邏輯，並加入 Loading 狀態讓使用者知道 AI 正在『查詢資料中』。」
+## 三、 Agent 運作流程 (The Loop)
+
+1. **[User Input]**: 使用者傳送訊息。
+2. **[Thought]**: AI 分析意圖，決定需要哪些資料。
+3. **[Action]**: AI 輸出 JSON 格式的 Tool Call 指令（例如 `search_tools`）。
+4. **[Observation]**: PHP 接收指令 -> 執行對應 SQL 樣板 -> 獲取資料庫結果 -> 將 JSON 結果回傳給 AI。
+5. **[Final Response]**: AI 讀取資料庫數據，結合「個人化偏好」，生成最終的建議回覆給使用者。
 
 ---
 
-## 5. 任務提示詞 D：提示詞工程 (System Prompt)
-「請幫我寫一段給這個 Agent 小幫手的 System Prompt。它的身分是：
-- 一個專業的 AI 工具顧問。
-- 它知道它有權限存取資料庫，所以當用戶提到『我之前存過...』或『推薦給我適合我的...』時，它必須優先考慮使用工具去查詢，而不是瞎猜。
-- 回答要親切且具備專業洞察力。」
-
----
-
-## 💡 實作建議
-在使用這些提示詞時，建議**分步驟進行**。先讓 AI 幫你寫出後端 PHP 的基本掛接，確認能成功連到 OpenAI/Gemini 後，再開始加入資料庫查詢的工具調用邏輯。
+## 四、 錯誤處理規範
+- 若 `smart_search` 回傳為空，AI 應自動嘗試「擴大搜尋範圍」或建議使用者更換關鍵字。
+- 嚴禁 AI 在回覆中直接顯示資料庫的 ID 欄位，應以名稱與 Logo 連結取代。
