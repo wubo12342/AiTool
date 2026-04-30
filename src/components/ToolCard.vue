@@ -1,5 +1,5 @@
 <script setup>
-import { Star, Heart } from 'lucide-vue-next'
+import { Star, Heart, ExternalLink } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -19,6 +19,10 @@ const props = defineProps({
   showFavoriteButton: {
     type: Boolean,
     default: false
+  },
+  disableFlip: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -32,7 +36,8 @@ const goDetail = () => {
 </script>
 
 <template>
-  <div class="flip-card group cursor-pointer" @click="emit('click')">
+  <!-- 翻轉卡片模式 -->
+  <div v-if="!disableFlip" class="flip-card group cursor-pointer" @click="emit('click')">
     <div class="flip-card-inner">
       <!-- 正面 -->
       <div class="flip-card-face flip-card-front">
@@ -120,11 +125,66 @@ const goDetail = () => {
       </div>
     </div>
   </div>
+
+  <!-- 靜態卡片模式 (無翻轉) -->
+  <div v-else class="static-card group" @click="emit('click')">
+    <div class="flex flex-col h-full p-6 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white/20 shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all duration-300">
+      <div class="flex justify-between items-start mb-5">
+        <div class="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+          <img :src="logoUrl" :alt="name" class="w-11 h-11 object-contain">
+        </div>
+
+        <div class="flex flex-col items-end gap-2">
+          <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
+            <Star class="w-4 h-4 fill-current" />
+            {{ rating }}
+          </div>
+
+          <button
+            v-if="showFavoriteButton"
+            @click.stop="emit('toggleFavorite')"
+            class="p-2 rounded-full transition-colors"
+            :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
+            type="button"
+          >
+            <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
+          </button>
+        </div>
+      </div>
+
+      <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary transition-colors">
+        {{ name }}
+      </h3>
+
+      <p class="text-sm text-slate-500 line-clamp-3 mb-6 flex-grow leading-relaxed">
+        {{ description }}
+      </p>
+
+      <div class="flex flex-wrap gap-2 mb-6">
+        <span
+          v-for="(tag, index) in tags"
+          :key="index"
+          class="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg text-[10px] font-bold tracking-wider"
+        >
+          {{ tag }}
+        </span>
+      </div>
+
+      <button
+        @click.stop="goDetail"
+        class="w-full py-3 flex items-center justify-center gap-2 bg-slate-50 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-2xl transition-all border-none cursor-pointer group/btn"
+      >
+        查看詳情
+        <ExternalLink class="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+      </button>
+    </div>
+  </div>
 </template>
 
 <style scoped>
+/* 翻轉卡片樣式 */
 .flip-card {
-  height: 280px;
+  height: 320px;
   perspective: 1200px;
 }
 
@@ -132,7 +192,7 @@ const goDetail = () => {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.7s ease;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
 }
 
@@ -143,13 +203,13 @@ const goDetail = () => {
 .flip-card-face {
   position: absolute;
   inset: 0;
-  border-radius: 1.5rem;
-  padding: 1.25rem;
+  border-radius: 2rem;
+  padding: 1.5rem;
   backface-visibility: hidden;
   overflow: hidden;
   box-shadow:
-    0 20px 45px rgba(15, 23, 42, 0.12),
-    0 0 0 1px rgba(226, 232, 240, 0.9);
+    0 10px 30px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(226, 232, 240, 0.8);
   backdrop-filter: blur(16px);
 }
 
@@ -164,7 +224,20 @@ const goDetail = () => {
 
 .flip-card:hover .flip-card-face {
   box-shadow:
-    0 25px 60px rgba(15, 23, 42, 0.18),
-    0 0 0 1px rgba(59, 130, 246, 0.15);
+    0 20px 50px rgba(15, 23, 42, 0.15),
+    0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+
+/* 靜態卡片樣式 */
+.static-card {
+  height: 100%;
+  cursor: pointer;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

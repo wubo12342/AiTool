@@ -1,4 +1,5 @@
 <script setup>
+import { RouterLink } from 'vue-router'
 import NeuralTechBackground from './NeuralTechBackground.vue'
 import {
   Search,
@@ -94,10 +95,10 @@ const popularTools = [
           <!-- Trending Tags -->
           <div class="mt-6 flex flex-wrap justify-center gap-3 text-sm text-slate-400">
             <span>熱門關鍵字：</span>
-            <a href="#" class="hover:text-white transition-colors">#ChatGPT</a>
-            <a href="#" class="hover:text-white transition-colors">#Midjourney</a>
-            <a href="#" class="hover:text-white transition-colors">#效率提升</a>
-            <a href="#" class="hover:text-white transition-colors">#影片自動生成</a>
+            <RouterLink to="/search?q=ChatGPT" class="text-slate-400 hover:text-white transition-colors no-underline">#ChatGPT</RouterLink>
+            <RouterLink to="/search?q=Midjourney" class="text-slate-400 hover:text-white transition-colors no-underline">#Midjourney</RouterLink>
+            <RouterLink to="/search?q=效率提升" class="text-slate-400 hover:text-white transition-colors no-underline">#效率提升</RouterLink>
+            <RouterLink to="/search?q=影片自動生成" class="text-slate-400 hover:text-white transition-colors no-underline">#影片自動生成</RouterLink>
           </div>
         </div>
       </section>
@@ -145,9 +146,9 @@ const popularTools = [
             <p class="text-slate-500">當前社區評分最高與使用最廣泛的工具。</p>
           </div>
 
-          <a href="/tools" class="text-primary font-semibold flex items-center gap-1 hover:underline cursor-pointer">
+          <RouterLink to="/tools" class="text-primary font-semibold flex items-center gap-1 hover:underline no-underline">
             查看更多 <ChevronRight class="w-4 h-4" />
-          </a>
+          </RouterLink>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -155,7 +156,6 @@ const popularTools = [
             v-for="tool in popularTools"
             :key="tool.id"
             v-bind="tool"
-            @click="console.log('Click tool:', tool.name)"
           />
         </div>
       </section>
@@ -168,47 +168,47 @@ const popularTools = [
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          <a href="#" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group">
+          <RouterLink to="/category/writing" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-primary mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Type class="w-8 h-8" />
             </div>
-            <span class="font-bold">文本創作</span>
-          </a>
+            <span class="font-bold text-slate-900 group-hover:text-primary">文本創作</span>
+          </RouterLink>
 
-          <a href="#" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group">
+          <RouterLink to="/category/image" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Palette class="w-8 h-8" />
             </div>
-            <span class="font-bold">圖像生成</span>
-          </a>
+            <span class="font-bold text-slate-900 group-hover:text-primary">圖像生成</span>
+          </RouterLink>
 
-          <a href="#" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group">
+          <RouterLink to="/category/video" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Video class="w-8 h-8" />
             </div>
-            <span class="font-bold">影片剪輯</span>
-          </a>
+            <span class="font-bold text-slate-900 group-hover:text-primary">影片剪輯</span>
+          </RouterLink>
 
-          <a href="#" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group">
+          <RouterLink to="/category/coding" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Code class="w-8 h-8" />
             </div>
-            <span class="font-bold">程式開發</span>
-          </a>
+            <span class="font-bold text-slate-900 group-hover:text-primary">程式開發</span>
+          </RouterLink>
 
-          <a href="#" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group">
+          <RouterLink to="/category/audio" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Music class="w-8 h-8" />
             </div>
-            <span class="font-bold">音訊處理</span>
-          </a>
+            <span class="font-bold text-slate-900 group-hover:text-primary">音訊處理</span>
+          </RouterLink>
 
-          <a href="#" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group">
+          <RouterLink to="/tools" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-yellow-50 flex items-center justify-center text-yellow-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Layout class="w-8 h-8" />
             </div>
-            <span class="font-bold">更多工具</span>
-          </a>
+            <span class="font-bold text-slate-900 group-hover:text-primary">更多工具</span>
+          </RouterLink>
         </div>
       </section>
 

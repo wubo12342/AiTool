@@ -1,13 +1,15 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter, RouterLink } from 'vue-router'
 import { Bot, LogIn, UserPlus, Menu, X, LogOut, LayoutDashboard } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth.js'
 
+const router = useRouter()
 const isMenuOpen = ref(false)
 
-const emit = defineEmits(['openAuth', 'logout', 'navigate'])
+const emit = defineEmits(['openAuth'])
 
-const { isLoggedIn, username, checkAuth, handleLogout } = useAuth()
+const { isLoggedIn, checkAuth, handleLogout } = useAuth()
 
 onMounted(() => {
   checkAuth()
@@ -16,35 +18,46 @@ onMounted(() => {
 const doLogout = () => {
   handleLogout()
   isMenuOpen.value = false
-  emit('logout')
+  router.push('/')
 }
 
-const navigate = (view) => {
-  emit('navigate', view)
+const closeMenu = () => {
   isMenuOpen.value = false
 }
 </script>
 
 <template>
-  <nav class="sticky top-0 z-50 bg-white/98 border-b">
+  <nav class="sticky top-0 z-50 bg-white/98 border-b backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <!-- Logo -->
-        <button @click="navigate('home')" class="flex-shrink-0 flex items-center gap-2 cursor-pointer border-none bg-transparent">
+        <RouterLink
+          to="/"
+          class="flex-shrink-0 flex items-center gap-2 no-underline"
+          @click="closeMenu"
+        >
           <Bot class="w-8 h-8 text-primary" />
           <span class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             AI Hub
           </span>
-        </button>
+        </RouterLink>
 
-        <!-- Desktop Nav -->
+        <!-- Desktop Navigation -->
         <div v-if="isLoggedIn" class="hidden md:flex items-center gap-8">
-          <button @click="navigate('home')" class="text-slate-600 hover:text-primary font-medium transition-colors cursor-pointer border-none bg-transparent">首頁</button>
-          <a href="/tools" class="text-slate-600 hover:text-primary font-medium transition-colors">所有工具</a>
-          <a href="/compare" class="text-slate-600 hover:text-primary font-medium transition-colors">功能比較</a>
+          <RouterLink to="/" class="text-slate-600 hover:text-primary font-medium transition-colors no-underline">
+            首頁
+          </RouterLink>
+
+          <RouterLink to="/tools" class="text-slate-600 hover:text-primary font-medium transition-colors no-underline">
+            所有工具
+          </RouterLink>
+
+          <RouterLink to="/compare" class="text-slate-600 hover:text-primary font-medium transition-colors no-underline">
+            功能比較
+          </RouterLink>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Auth Actions -->
         <div class="flex items-center gap-3">
           <template v-if="!isLoggedIn">
             <button
@@ -66,13 +79,13 @@ const navigate = (view) => {
 
           <template v-else>
             <div class="hidden sm:flex items-center gap-4">
-              <button
-                @click="navigate('profile')"
-                class="flex items-center gap-2 text-slate-600 hover:text-primary font-medium transition-colors cursor-pointer border-none bg-transparent whitespace-nowrap"
+              <RouterLink
+                to="/profile"
+                class="flex items-center gap-2 text-slate-600 hover:text-primary font-medium transition-colors no-underline whitespace-nowrap"
               >
                 <LayoutDashboard class="w-5 h-5" />
                 個人專區
-              </button>
+              </RouterLink>
 
               <button
                 @click="doLogout"
@@ -84,11 +97,11 @@ const navigate = (view) => {
             </div>
           </template>
 
-          <!-- Mobile Menu Icon -->
+          <!-- Mobile Menu Toggle -->
           <button
             @click="isMenuOpen = !isMenuOpen"
-            class="md:hidden p-2 text-slate-600 border-none bg-transparent"
-            type="button"
+            class="md:hidden p-2 text-slate-600 border-none bg-transparent cursor-pointer"
+            aria-label="Toggle menu"
           >
             <Menu v-if="!isMenuOpen" class="w-6 h-6" />
             <X v-else class="w-6 h-6" />
@@ -97,20 +110,28 @@ const navigate = (view) => {
       </div>
     </div>
 
-    <!-- Mobile Menu -->
-    <div v-if="isMenuOpen" class="md:hidden bg-white border-b border-slate-200 py-4 px-4 space-y-3">
+    <!-- Mobile Navigation -->
+    <div v-if="isMenuOpen" class="md:hidden bg-white border-b border-slate-200 py-4 px-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
       <template v-if="isLoggedIn">
-        <button @click="navigate('home')" class="block w-full text-left text-slate-600 font-medium py-2 border-none bg-transparent">首頁</button>
-        <a href="/tools" class="block text-slate-600 font-medium py-2">所有工具</a>
-        <a href="/compare" class="block text-slate-600 font-medium py-2">功能比較</a>
+        <RouterLink to="/" @click="closeMenu" class="block w-full text-slate-600 font-medium py-2 no-underline">
+          首頁
+        </RouterLink>
+
+        <RouterLink to="/tools" @click="closeMenu" class="block w-full text-slate-600 font-medium py-2 no-underline">
+          所有工具
+        </RouterLink>
+
+        <RouterLink to="/compare" @click="closeMenu" class="block w-full text-slate-600 font-medium py-2 no-underline">
+          功能比較
+        </RouterLink>
+
         <hr class="border-slate-200" />
       </template>
 
       <template v-if="!isLoggedIn">
         <button
           @click="emit('openAuth', 'login'); isMenuOpen = false"
-          class="w-full text-left flex items-center gap-2 py-2 text-slate-600 border-none bg-transparent"
-          type="button"
+          class="w-full text-left flex items-center gap-2 py-2 text-slate-600 border-none bg-transparent cursor-pointer"
         >
           <LogIn class="w-5 h-5" />
           登入
@@ -118,8 +139,7 @@ const navigate = (view) => {
 
         <button
           @click="emit('openAuth', 'register'); isMenuOpen = false"
-          class="w-full text-left flex items-center gap-2 py-2 text-primary border-none bg-transparent"
-          type="button"
+          class="w-full text-left flex items-center gap-2 py-2 text-primary border-none bg-transparent cursor-pointer"
         >
           <UserPlus class="w-5 h-5" />
           建立帳號
@@ -127,18 +147,18 @@ const navigate = (view) => {
       </template>
 
       <template v-else>
-        <button
-          @click="navigate('profile')"
-          class="w-full text-left flex items-center gap-2 py-2 text-slate-600 border-none bg-transparent"
+        <RouterLink
+          to="/profile"
+          @click="closeMenu"
+          class="w-full flex items-center gap-2 py-2 text-slate-600 no-underline"
         >
           <LayoutDashboard class="w-5 h-5" />
           個人專區
-        </button>
+        </RouterLink>
 
         <button
           @click="doLogout"
-          class="w-full text-left flex items-center gap-2 py-2 text-red-500 border-none bg-transparent"
-          type="button"
+          class="w-full text-left flex items-center gap-2 py-2 text-red-500 border-none bg-transparent cursor-pointer"
         >
           <LogOut class="w-5 h-5" />
           登出
@@ -146,4 +166,4 @@ const navigate = (view) => {
       </template>
     </div>
   </nav>
-</template>
+</template>
