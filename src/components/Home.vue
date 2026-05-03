@@ -19,6 +19,9 @@ import {
   Check
 } from 'lucide-vue-next'
 import ToolCard from './ToolCard.vue'
+import { useFavorites } from '../composables/useFavorites.js'
+
+const { toggleFavorite, isFavorited } = useFavorites()
 
 const popularTools = [
   {
@@ -156,6 +159,9 @@ const popularTools = [
             v-for="tool in popularTools"
             :key="tool.id"
             v-bind="tool"
+            showFavoriteButton
+            :isFavorited="isFavorited(tool.id)"
+            @toggleFavorite="toggleFavorite(tool)"
           />
         </div>
       </section>

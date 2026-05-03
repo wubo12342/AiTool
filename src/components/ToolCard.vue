@@ -84,20 +84,32 @@ const goDetail = () => {
       <!-- 背面 -->
       <div class="flip-card-face flip-card-back">
         <div class="flex flex-col h-full">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
-              <img :src="logoUrl" :alt="name" class="w-8 h-8 object-contain">
-            </div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
+                <img :src="logoUrl" :alt="name" class="w-8 h-8 object-contain">
+              </div>
 
-            <div>
-              <h3 class="text-xl font-bold text-slate-900">
-                {{ name }}
-              </h3>
-              <div class="flex gap-1 text-orange-400 items-center text-sm font-bold mt-1">
-                <Star class="w-4 h-4 fill-current" />
-                {{ rating }}
+              <div>
+                <h3 class="text-xl font-bold text-slate-900">
+                  {{ name }}
+                </h3>
+                <div class="flex gap-1 text-orange-400 items-center text-sm font-bold mt-1">
+                  <Star class="w-4 h-4 fill-current" />
+                  {{ rating }}
+                </div>
               </div>
             </div>
+
+            <button
+              v-if="showFavoriteButton"
+              @click.stop="emit('toggleFavorite')"
+              class="p-2 rounded-full transition-colors"
+              :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
+              type="button"
+            >
+              <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
+            </button>
           </div>
 
           <p class="text-sm leading-7 text-slate-600 flex-grow">
@@ -128,35 +140,36 @@ const goDetail = () => {
 
   <!-- 靜態卡片模式 (無翻轉) -->
   <div v-else class="static-card group" @click="emit('click')">
-    <div class="flex flex-col h-full p-6 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white/20 shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all duration-300">
-      <div class="flex justify-between items-start mb-5">
-        <div class="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
-          <img :src="logoUrl" :alt="name" class="w-11 h-11 object-contain">
-        </div>
-
-        <div class="flex flex-col items-end gap-2">
-          <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
-            <Star class="w-4 h-4 fill-current" />
-            {{ rating }}
+    <div class="flex flex-col h-full p-6 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white/20 shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all duration-300 min-h-[320px]">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+            <img :src="logoUrl" :alt="name" class="w-8 h-8 object-contain">
           </div>
 
-          <button
-            v-if="showFavoriteButton"
-            @click.stop="emit('toggleFavorite')"
-            class="p-2 rounded-full transition-colors"
-            :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
-            type="button"
-          >
-            <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
-          </button>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors">
+              {{ name }}
+            </h3>
+            <div class="flex gap-1 text-orange-400 items-center text-sm font-bold mt-1">
+              <Star class="w-4 h-4 fill-current" />
+              {{ rating }}
+            </div>
+          </div>
         </div>
+
+        <button
+          v-if="showFavoriteButton"
+          @click.stop="emit('toggleFavorite')"
+          class="p-2 rounded-full transition-colors"
+          :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
+          type="button"
+        >
+          <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
+        </button>
       </div>
 
-      <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary transition-colors">
-        {{ name }}
-      </h3>
-
-      <p class="text-sm text-slate-500 line-clamp-3 mb-6 flex-grow leading-relaxed">
+      <p class="text-sm leading-7 text-slate-600 flex-grow mb-6">
         {{ description }}
       </p>
 
@@ -164,7 +177,7 @@ const goDetail = () => {
         <span
           v-for="(tag, index) in tags"
           :key="index"
-          class="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg text-[10px] font-bold tracking-wider"
+          class="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-semibold"
         >
           {{ tag }}
         </span>
@@ -172,7 +185,7 @@ const goDetail = () => {
 
       <button
         @click.stop="goDetail"
-        class="w-full py-3 flex items-center justify-center gap-2 bg-slate-50 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-2xl transition-all border-none cursor-pointer group/btn"
+        class="w-full py-3 bg-slate-100 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all border-none cursor-pointer flex items-center justify-center gap-2 group/btn"
       >
         查看詳情
         <ExternalLink class="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />

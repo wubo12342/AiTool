@@ -13,32 +13,13 @@ import {
 } from 'lucide-vue-next';
 import ToolCard from './ToolCard.vue';
 import { useAuth } from '../composables/useAuth.js';
+import { useFavorites } from '../composables/useFavorites.js';
 
 const { username } = useAuth();
+const { favorites, toggleFavorite } = useFavorites();
 const activeTab = ref('favorites');
 
 // --- 模擬資料 Mock Data ---
-const favorites = ref([
-  {
-    id: 1,
-    name: 'ChatGPT',
-    description: '地表最強 AI 寫作助理，支援程式碼編寫與各類創意構思。',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=ChatGPT',
-    rating: 4.9,
-    tags: ['文本創作', '免費版'],
-    isFavorited: true
-  },
-  {
-    id: 4,
-    name: 'Notion AI',
-    description: '融合筆記、表格與 AI 助手，自動整理筆記與摘要內容。',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Notion',
-    rating: 4.9,
-    tags: ['生產力', 'Freemium'],
-    isFavorited: true
-  }
-]);
-
 const reviews = ref([
   {
     id: 1,
@@ -60,11 +41,6 @@ const reviews = ref([
 
 // --- AI 偏好設定 ---
 const customContext = ref('');
-
-// --- 功能函數 ---
-const handleUnfavorite = (id) => {
-  favorites.value = favorites.value.filter(f => f.id !== id);
-};
 
 const handleDeleteReview = (id) => {
   reviews.value = reviews.value.filter(r => r.id !== id);
@@ -128,8 +104,9 @@ const handleDeleteReview = (id) => {
               :key="tool.id" 
               v-bind="tool"
               showFavoriteButton
+              isFavorited
               disableFlip
-              @toggleFavorite="handleUnfavorite(tool.id)"
+              @toggleFavorite="toggleFavorite(tool)"
             />
           </div>
           <div v-else class="glass-card p-16 text-center rounded-[3rem] border-dashed border-2 border-slate-200 bg-transparent shadow-none">
