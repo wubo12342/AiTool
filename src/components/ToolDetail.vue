@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import axios from 'axios'
 import {
@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   Bot,
   Heart,
-  ExternalLink
+  ExternalLink,
+  ArrowRight
 } from 'lucide-vue-next'
 import { useFavorites } from '../composables/useFavorites.js'
 
@@ -81,21 +82,24 @@ const fetchComments = async () => {
 }
 
 const addComment = async () => {
-  if (!newComment.value.trim()) return
+  // 只要有輸入文字 OR 有選擇星級，就可以發布
+  if (!newComment.value.trim() && userRating.value === 0) return
 
   try {
     await axios.post('/api/add_comment.php', {
       tool_id: route.params.id,
-      content: newComment.value,
+      content: newComment.value.trim() || '（僅給予星級評分）',
       rating: userRating.value || 5
     })
 
     await fetchComments()
     newComment.value = ''
+    // 發布後不重設星級，方便使用者看到自己剛才的評分，或者可以選擇在此重設為 0
   } catch (err) {
     comments.value.unshift({
       user: '訪客',
-      content: newComment.value,
+      content: newComment.value.trim() || '（僅給予星級評分）',
+      date: '剛剛',
       rating: userRating.value || 5
     })
 
@@ -129,8 +133,24 @@ const getRatingPercent = (star) => {
 const recommendedTools = computed(() => {
   if (!tool.value) return []
 
+  // 取得目前工具的標籤 (包含分類與價格狀態)
+  const currentTags = tool.value.tags || []
+
   return tools.value
-    .filter(item => item.id !== tool.value.id)
+    .filter(item => item.id !== tool.value.id) // 排除目前正在查看的工具
+    .map(item => {
+      // 計算與目前工具重合的標籤數量
+      const itemTags = item.tags || []
+      const matchCount = itemTags.filter(tag => currentTags.includes(tag)).length
+      return { ...item, matchCount }
+    })
+    .sort((a, b) => {
+      // 優先依照匹配標籤數量排序，數量相同則依評分排序
+      if (b.matchCount !== a.matchCount) {
+        return b.matchCount - a.matchCount
+      }
+      return b.rating - a.rating
+    })
     .slice(0, 3)
 })
 
@@ -149,6 +169,43 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// 當從一個工具詳情跳轉到另一個工具詳情時，重新抓取資料
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    fetchToolDetail()
+    fetchComments()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+})
+
+const getEmbedUrl = (url) => {
+  if (!url) return ''
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+    const match = url.match(regExp)
+    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url
+  }
+  return url
+}
+
+const getTagColor = (tagName) => {
+  const colors = {
+    '文字生成': 'bg-blue-100 text-blue-700',
+    '圖像生成': 'bg-purple-100 text-purple-700',
+    '影片製作': 'bg-orange-100 text-orange-700',
+    '程式開發': 'bg-green-100 text-green-700',
+    '語音生成': 'bg-red-100 text-red-700',
+    '簡報設計': 'bg-yellow-100 text-yellow-700',
+    '資料整理': 'bg-indigo-100 text-indigo-700',
+    '翻譯語言': 'bg-teal-100 text-teal-700',
+    '免費版': 'bg-emerald-100 text-emerald-700',
+    '付費': 'bg-slate-200 text-slate-800',
+    '訂閱制': 'bg-amber-100 text-amber-700',
+    'Freemium': 'bg-cyan-100 text-cyan-700'
+  }
+  return colors[tagName] || 'bg-slate-100 text-slate-600'
+}
 
 const getFallbackTools = () => [
   {
@@ -311,7 +368,8 @@ const getFallbackTools = () => [
               <span
                 v-for="tag in tool.tags"
                 :key="tag"
-                class="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider"
+                class="px-3 py-1 rounded-lg text-sm font-bold uppercase tracking-wider"
+                :class="getTagColor(tag)"
               >
                 {{ tag }}
               </span>
@@ -335,6 +393,22 @@ const getFallbackTools = () => [
               <ExternalLink class="w-4 h-4" />
             </a>
           </div>
+        </div>
+      </section>
+      
+      <!-- Video Section -->
+      <section v-if="tool.video_url" class="mb-16">
+        <h2 class="text-2xl font-bold text-slate-900 mb-8 px-2 flex items-center gap-3">
+          <div class="w-1.5 h-6 bg-cta rounded-full"></div>
+          介紹影片
+        </h2>
+        <div class="aspect-video max-w-4xl mx-auto rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white">
+          <iframe 
+            :src="getEmbedUrl(tool.video_url)" 
+            class="w-full h-full border-none"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen
+          ></iframe>
         </div>
       </section>
 
@@ -378,131 +452,140 @@ const getFallbackTools = () => [
                 {{ feature }}
               </li>
             </ul>
-
-            <button class="w-full py-3.5 bg-slate-50 text-slate-700 rounded-xl font-bold hover:bg-primary hover:text-white transition-all border-none cursor-pointer text-sm">
-              立即開始
-            </button>
           </div>
         </div>
       </section>
 
-      <div class="grid md:grid-cols-2 gap-8 items-stretch">
-        <section class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-lg md:h-[420px] flex flex-col">
-          <h2 class="text-xl font-bold text-slate-900 mb-6">
-            使用者評價
-          </h2>
+      <!-- Unified Reviews & Community Section -->
+      <section class="mb-20">
+        <h2 class="text-2xl font-bold text-slate-900 mb-8 px-2 flex items-center gap-3">
+          <div class="w-1.5 h-6 bg-cta rounded-full"></div>
+          評價與社群討論
+        </h2>
 
-          <div class="flex items-center gap-6 mb-8">
-            <div class="text-5xl font-bold text-slate-900">
-              {{ tool.rating }}
+        <div class="bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[500px]">
+          <!-- Left Side: Rating Summary -->
+          <div class="lg:w-1/3 p-10 bg-slate-50/50 border-r border-slate-100">
+            <h3 class="text-xl font-bold text-slate-900 mb-8">整體評分</h3>
+            
+            <div class="flex items-center gap-6 mb-10">
+              <div class="text-6xl font-black text-slate-900 leading-none">
+                {{ tool.rating }}
+              </div>
+              <div>
+                <div class="flex gap-1 mb-2">
+                  <Star
+                    v-for="n in 5"
+                    :key="n"
+                    class="w-5 h-5"
+                    :class="n <= Math.round(tool.rating) ? 'text-orange-400 fill-current' : 'text-slate-200'"
+                  />
+                </div>
+                <p class="text-sm text-slate-500 font-medium">
+                  共 {{ comments.length }} 則社群評價
+                </p>
+              </div>
             </div>
 
-            <div>
-              <div class="flex gap-1 mb-2">
-                <Star
-                  v-for="n in 5"
-                  :key="n"
-                  class="w-5 h-5"
-                  :class="n <= Math.round(tool.rating) ? 'text-orange-400 fill-current' : 'text-slate-200'"
-                />
+            <!-- Rating Breakdown -->
+            <div class="space-y-4 mb-12">
+              <div v-for="n in 5" :key="n" class="flex items-center gap-4 text-sm">
+                <span class="w-10 font-bold text-slate-500 text-right">{{ 6 - n }} 星</span>
+                <div class="flex-1 h-2.5 bg-slate-200/50 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-orange-400 transition-all duration-1000"
+                    :style="{ width: getRatingPercent(6 - n) + '%' }"
+                  ></div>
+                </div>
+                <span class="w-12 text-slate-400 font-medium">
+                  {{ getRatingCount(6 - n) }}
+                </span>
               </div>
+            </div>
 
-              <p class="text-sm text-slate-400">
-                共 {{ comments.length }} 則評價
+            <!-- Your Rating Action -->
+            <div class="pt-8 border-t border-slate-200/50">
+              <p class="font-bold text-slate-800 mb-4">
+                您的評分
+              </p>
+              <div class="flex gap-2.5">
+                <button
+                  v-for="star in 5"
+                  :key="star"
+                  @click="submitRating(star)"
+                  class="transition-all hover:scale-125 border-none bg-transparent cursor-pointer p-0.5 group"
+                >
+                  <Star
+                    class="w-8 h-8 transition-colors"
+                    :class="star <= userRating ? 'text-orange-400 fill-current' : 'text-slate-200 group-hover:text-orange-300'"
+                  />
+                </button>
+              </div>
+              <p class="text-xs text-slate-400 mt-4 leading-relaxed">
+                分享您的使用體驗，幫助社群發現更好的工具。
               </p>
             </div>
           </div>
 
-          <div class="space-y-2 mb-8 flex-1">
-            <div v-for="n in 5" :key="n" class="flex items-center gap-2 text-sm">
-              <span class="w-10 text-slate-500">{{ 6 - n }} 星</span>
+          <!-- Right Side: Comment Feed -->
+          <div class="lg:w-2/3 p-10 flex flex-col">
+            <h3 class="text-xl font-bold text-slate-900 mb-8">
+              社群討論
+            </h3>
 
-              <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-orange-400"
-                  :style="{ width: getRatingPercent(6 - n) + '%' }"
-                ></div>
-              </div>
-
-              <span class="w-8 text-slate-400 text-xs">
-                {{ getRatingCount(6 - n) }}
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <p class="font-semibold text-slate-700 mb-2">
-              你的評分
-            </p>
-
-            <div class="flex gap-2">
-              <button
-                v-for="star in 5"
-                :key="star"
-                @click="submitRating(star)"
-                class="transition hover:scale-110 border-none bg-transparent cursor-pointer p-0.5"
+            <!-- Comment Input -->
+            <div class="flex gap-4 mb-10 group">
+              <input
+                v-model="newComment"
+                type="text"
+                placeholder="分享您的使用心得或提問..."
+                class="flex-1 rounded-2xl border-2 border-slate-100 px-6 py-4 outline-none focus:border-primary/20 bg-slate-50/50 transition-all font-medium text-slate-700"
+                @keyup.enter="addComment"
               >
-                <Star
-                  class="w-7 h-7"
-                  :class="star <= userRating ? 'text-orange-400 fill-current' : 'text-slate-200'"
-                />
+              <button
+                @click="addComment"
+                class="px-8 bg-primary text-white rounded-2xl font-bold hover:bg-primary/90 flex items-center gap-2 transition-all shadow-lg shadow-primary/20 border-none cursor-pointer"
+              >
+                <Send class="w-5 h-5" />
+                發佈
               </button>
             </div>
-          </div>
-        </section>
 
-        <section class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-lg md:h-[420px] flex flex-col">
-          <h2 class="text-xl font-bold text-slate-900 mb-6">
-            社群評價
-          </h2>
-
-          <div class="flex gap-3 mb-8">
-            <input
-              v-model="newComment"
-              type="text"
-              placeholder="分享您的使用心得..."
-              class="flex-1 rounded-xl border border-slate-100 px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/10 bg-slate-50 transition-all font-medium text-sm"
-              @keyup.enter="addComment"
-            >
-
-            <button
-              @click="addComment"
-              class="px-6 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 flex items-center gap-2 transition-all shadow-md shadow-primary/10 border-none cursor-pointer text-sm"
-            >
-              <Send class="w-4 h-4" />
-              發佈
-            </button>
-          </div>
-
-          <div class="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div
-              v-for="(comment, index) in comments"
-              :key="index"
-              class="p-5 rounded-2xl border border-slate-50 bg-slate-50/30"
-            >
-              <div class="flex items-center justify-between gap-3 mb-2.5">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                    {{ comment.user.charAt(0) }}
+            <!-- Comment List -->
+            <div class="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[450px]">
+              <div
+                v-for="(comment, index) in comments"
+                :key="index"
+                class="p-6 rounded-3xl border border-slate-50 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-300 group"
+              >
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                      {{ comment.user.charAt(0) }}
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900 text-sm">{{ comment.user }}</div>
+                      <div class="text-[10px] text-slate-400 uppercase tracking-tighter">{{ comment.date }}</div>
+                    </div>
                   </div>
-                  <h4 class="font-bold text-slate-800 text-sm">
-                    {{ comment.user }}
-                  </h4>
+                  <div class="flex gap-0.5">
+                    <Star v-for="s in 5" :key="s" class="w-3 h-3" :class="s <= comment.rating ? 'text-orange-400 fill-current' : 'text-slate-200'" />
+                  </div>
                 </div>
-
-                <div class="flex items-center gap-1 text-orange-400 text-xs font-bold">
-                  <Star class="w-4 h-4 fill-current" />
-                  {{ comment.rating || 5 }}
-                </div>
+                <p class="text-slate-600 text-sm leading-relaxed font-medium">
+                  {{ comment.content }}
+                </p>
               </div>
 
-              <p class="text-slate-500 leading-relaxed font-medium text-sm">
-                {{ comment.content }}
-              </p>
+              <!-- Empty State -->
+              <div v-if="comments.length === 0" class="py-20 text-center">
+                <Bot class="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                <p class="text-slate-400 font-medium">目前尚無討論，成為第一個留言的人吧！</p>
+              </div>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <section class="mt-16">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
@@ -548,14 +631,21 @@ const getFallbackTools = () => [
               {{ item.description }}
             </p>
 
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="tag in item.tags"
-                :key="tag"
-                class="px-3 py-1 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold"
-              >
-                {{ tag }}
-              </span>
+            <div class="mt-6 pt-5 border-t border-slate-50 flex items-end justify-between gap-4">
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="tag in item.tags"
+                  :key="tag"
+                  class="px-3 py-1 rounded-lg text-[12px] font-bold"
+                  :class="getTagColor(tag)"
+                >
+                  {{ tag }}
+                </span>
+              </div>
+              
+              <div class="px-6 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/25 whitespace-nowrap group-hover:scale-105 transition-all">
+                查看詳情
+              </div>
             </div>
           </RouterLink>
         </div>

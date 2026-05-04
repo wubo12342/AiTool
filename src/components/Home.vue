@@ -18,45 +18,40 @@ import {
   PenTool,
   Check
 } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
+import axios from 'axios'
 import ToolCard from './ToolCard.vue'
 import { useFavorites } from '../composables/useFavorites.js'
 
 const { toggleFavorite, isFavorited } = useFavorites()
 
-const popularTools = [
-  {
-    id: 1,
-    name: 'ChatGPT',
-    description: '地表最強 AI 寫作助理，支援程式碼編寫與各類創意構思。',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=ChatGPT',
-    rating: 4.9,
-    tags: ['文本創作', '免費版']
-  },
-  {
-    id: 2,
-    name: 'Midjourney',
-    description: '藝術級圖像生成工具，將您的想像轉化為超寫實畫作。',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Midjourney',
-    rating: 4.8,
-    tags: ['圖像生成', '付費']
-  },
-  {
-    id: 3,
-    name: 'Jasper AI',
-    description: '專業級行銷文案與部落格寫作工具，內建百種模板。',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Jasper',
-    rating: 4.7,
-    tags: ['行銷文案', '訂閱制']
-  },
-  {
-    id: 4,
-    name: 'Notion AI',
-    description: '融合筆記、表格與 AI 助手，自動整理筆記與摘要內容。',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Notion',
-    rating: 4.9,
-    tags: ['生產力', 'Freemium']
+const popularTools = ref([])
+const isLoading = ref(true)
+const apiError = ref('')
+
+const fetchTools = async () => {
+  try {
+    isLoading.value = true
+    const response = await axios.get('/api/get_tools.php')
+    
+    if (Array.isArray(response.data)) {
+      popularTools.value = response.data.slice(0, 8)
+      apiError.value = ''
+    } else {
+      throw new Error(response.data.error || '資料格式錯誤')
+    }
+  } catch (error) {
+    console.error('取得資料庫資料失敗:', error)
+    apiError.value = '無法載入資料庫內容，請檢查 XAMPP 連線。'
+    popularTools.value = []
+  } finally {
+    isLoading.value = false
   }
-]
+}
+
+onMounted(() => {
+  fetchTools()
+})
 </script>
 
 <template>
@@ -90,7 +85,7 @@ const popularTools = [
               class="w-full pl-14 pr-32 py-5 bg-white text-slate-900 rounded-2xl shadow-2xl outline-none focus:ring-4 focus:ring-primary/20 transition-all text-lg border-none"
             >
 
-            <button class="absolute inset-y-2 right-2 px-6 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all flex items-center gap-2 border-none cursor-pointer">
+            <button class="absolute inset-y-2 right-2 px-8 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all flex items-center justify-center whitespace-nowrap min-w-[100px] border-none cursor-pointer">
               搜尋
             </button>
           </div>
@@ -154,7 +149,17 @@ const popularTools = [
           </RouterLink>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- 錯誤訊息提示 -->
+        <div v-if="apiError" class="mb-8 p-4 bg-orange-50 border border-orange-200 text-orange-700 rounded-2xl text-center text-sm">
+          <strong>偵錯資訊：</strong> {{ apiError }} <br>
+          <small>請確認 XAMPP Apache 埠號是否正確，目前嘗試連接的是 8080。</small>
+        </div>
+
+        <div v-if="isLoading" class="flex justify-center items-center py-20 col-span-full">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <ToolCard
             v-for="tool in popularTools"
             :key="tool.id"
@@ -174,39 +179,39 @@ const popularTools = [
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          <RouterLink to="/category/writing" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <RouterLink to="/category/1" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-primary mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Type class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">文本創作</span>
+            <span class="font-bold text-slate-900 group-hover:text-primary">文字生成</span>
           </RouterLink>
 
-          <RouterLink to="/category/image" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <RouterLink to="/category/2" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Palette class="w-8 h-8" />
             </div>
             <span class="font-bold text-slate-900 group-hover:text-primary">圖像生成</span>
           </RouterLink>
 
-          <RouterLink to="/category/video" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <RouterLink to="/category/3" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Video class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">影片剪輯</span>
+            <span class="font-bold text-slate-900 group-hover:text-primary">影片製作</span>
           </RouterLink>
 
-          <RouterLink to="/category/coding" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <RouterLink to="/category/4" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Code class="w-8 h-8" />
             </div>
             <span class="font-bold text-slate-900 group-hover:text-primary">程式開發</span>
           </RouterLink>
 
-          <RouterLink to="/category/audio" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <RouterLink to="/category/5" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Music class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">音訊處理</span>
+            <span class="font-bold text-slate-900 group-hover:text-primary">語音生成</span>
           </RouterLink>
 
           <RouterLink to="/tools" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
@@ -270,14 +275,7 @@ const popularTools = [
               >
             </div>
 
-            <div class="absolute -bottom-8 -left-8 bg-white/95 p-6 rounded-2xl shadow-xl flex items-center gap-4 max-w-xs border border-slate-100">
-              <div class="w-10 h-10 rounded-full bg-cta flex items-center justify-center text-white">
-                <Check class="w-6 h-6" />
-              </div>
-              <span class="font-bold text-slate-800">
-                已幫助 10,000+ 使用者提升工作效率
-              </span>
-            </div>
+            
           </div>
         </div>
       </section>

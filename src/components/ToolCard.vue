@@ -33,6 +33,24 @@ const router = useRouter()
 const goDetail = () => {
   router.push(`/tool/${props.id}`)
 }
+
+const getTagColor = (tagName) => {
+  const colors = {
+    '文字生成': 'bg-blue-100 text-blue-700',
+    '圖像生成': 'bg-purple-100 text-purple-700',
+    '影片製作': 'bg-orange-100 text-orange-700',
+    '程式開發': 'bg-green-100 text-green-700',
+    '語音生成': 'bg-red-100 text-red-700',
+    '簡報設計': 'bg-yellow-100 text-yellow-700',
+    '資料整理': 'bg-indigo-100 text-indigo-700',
+    '翻譯語言': 'bg-teal-100 text-teal-700',
+    '免費版': 'bg-emerald-100 text-emerald-700',
+    '付費': 'bg-slate-200 text-slate-800',
+    '訂閱制': 'bg-amber-100 text-amber-700',
+    'Freemium': 'bg-cyan-100 text-cyan-700'
+  }
+  return colors[tagName] || 'bg-slate-100 text-slate-600'
+}
 </script>
 
 <template>
@@ -73,7 +91,8 @@ const goDetail = () => {
             <span
               v-for="(tag, index) in tags"
               :key="index"
-              class="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold"
+              class="px-3 py-1 rounded-md text-base font-semibold"
+              :class="getTagColor(tag)"
             >
               {{ tag }}
             </span>
@@ -91,7 +110,7 @@ const goDetail = () => {
               </div>
 
               <div>
-                <h3 class="text-xl font-bold text-slate-900">
+                <h3 class="text-base font-bold text-slate-900">
                   {{ name }}
                 </h3>
                 <div class="flex gap-1 text-orange-400 items-center text-sm font-bold mt-1">
@@ -120,7 +139,8 @@ const goDetail = () => {
             <span
               v-for="(tag, index) in tags"
               :key="index"
-              class="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-semibold"
+              class="px-3 py-1 rounded-md text-sm font-semibold"
+              :class="getTagColor(tag)"
             >
               {{ tag }}
             </span>
@@ -177,7 +197,8 @@ const goDetail = () => {
         <span
           v-for="(tag, index) in tags"
           :key="index"
-          class="px-3 py-1 bg-slate-100 text-slate-700 rounded-md text-xs font-semibold"
+          class="px-3 py-1 rounded-md text-base font-semibold"
+          :class="getTagColor(tag)"
         >
           {{ tag }}
         </span>
