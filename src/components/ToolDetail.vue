@@ -82,28 +82,34 @@ const fetchComments = async () => {
 }
 
 const addComment = async () => {
-  // 只要有輸入文字 OR 有選擇星級，就可以發布
   if (!newComment.value.trim() && userRating.value === 0) return
 
+  console.log('準備發布評論:', {
+    tool_id: route.params.id,
+    comment: newComment.value,
+    stars: userRating.value
+  });
+
   try {
-    await axios.post('/api/add_comment.php', {
+    const res = await axios.post('/api/submit_review.php', {
+      token: localStorage.getItem('jwt_token'),
       tool_id: route.params.id,
-      content: newComment.value.trim() || '（僅給予星級評分）',
-      rating: userRating.value || 5
+      comment: newComment.value.trim() || '（僅給予星級評分）',
+      stars: userRating.value || 5
     })
+    
+    console.log('伺服器回傳:', res.data);
 
-    await fetchComments()
-    newComment.value = ''
-    // 發布後不重設星級，方便使用者看到自己剛才的評分，或者可以選擇在此重設為 0
+    if (res.data.success) {
+      await fetchComments()
+      newComment.value = ''
+      userRating.value = 0
+    } else {
+      alert('發布失敗: ' + (res.data.error || '原因不明'));
+    }
   } catch (err) {
-    comments.value.unshift({
-      user: '訪客',
-      content: newComment.value.trim() || '（僅給予星級評分）',
-      date: '剛剛',
-      rating: userRating.value || 5
-    })
-
-    newComment.value = ''
+    console.error('發布評論失敗 (詳細錯誤):', err);
+    alert('網路錯誤或伺服器無回應，請檢查控制台。');
   }
 }
 

@@ -26,7 +26,6 @@ try {
 
     // 如果沒評論，回傳空陣列
     echo json_encode($comments ?: []);
-
 } catch (Exception $e) {
     echo json_encode([]);
 }

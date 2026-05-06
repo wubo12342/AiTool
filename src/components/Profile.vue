@@ -1,15 +1,13 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { 
   Bookmark, 
   MessageSquare, 
   Trash2, 
   Edit3, 
-  Save, 
-  Sparkles,
-  Info,
-  Star
+  Star,
+  RefreshCw
 } from 'lucide-vue-next';
 import ToolCard from './ToolCard.vue';
 import { useAuth } from '../composables/useAuth.js';
@@ -19,31 +17,56 @@ const { username } = useAuth();
 const { favorites, toggleFavorite } = useFavorites();
 const activeTab = ref('favorites');
 
-// --- 模擬資料 Mock Data ---
-const reviews = ref([
-  {
-    id: 1,
-    toolName: 'ChatGPT',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=ChatGPT',
-    rating: 5,
-    comment: '非常有用的工具，幫我省了很多寫文案的時間！',
-    date: '2026-03-20'
-  },
-  {
-    id: 102,
-    toolName: 'Midjourney',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Midjourney',
-    rating: 4,
-    comment: '生成的圖片很美，但提示詞需要一段時間學習。',
-    date: '2026-03-25'
+const reviews = ref([]);
+
+// 讀取資料
+onMounted(async () => {
+  try {
+    const response = await fetch('/api/update_profile.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'get',
+        token: localStorage.getItem('jwt_token')
+      })
+    });
+    const data = await response.json();
+    
+    // 處理並顯示評論
+    if (data.reviews) {
+      reviews.value = data.reviews.map(r => ({
+        ...r,
+        logoUrl: r.logo_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(r.toolName)}`,
+        date: r.comment_time ? r.comment_time.split(' ')[0] : '未知日期'
+      }));
+    }
+  } catch (error) {
+    console.error('讀取個人資料失敗:', error);
   }
-]);
+});
 
-// --- AI 偏好設定 ---
-const customContext = ref('');
-
-const handleDeleteReview = (id) => {
-  reviews.value = reviews.value.filter(r => r.id !== id);
+const handleDeleteReview = async (id) => {
+  if (!confirm('確定要刪除這則評論嗎？')) return;
+  
+  try {
+    const response = await fetch('/api/delete_review.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        review_id: id,
+        token: localStorage.getItem('jwt_token')
+      })
+    });
+    const data = await response.json();
+    if (data.success) {
+      // 重新載入列表
+      location.reload();
+    } else {
+      alert('刪除失敗: ' + (data.error || '未知錯誤'));
+    }
+  } catch (error) {
+    alert('網路錯誤，請稍後再試。');
+  }
 };
 </script>
 
@@ -76,13 +99,6 @@ const handleDeleteReview = (id) => {
               class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all font-bold mb-1 cursor-pointer border-none text-left"
             >
               <MessageSquare class="w-5 h-5" /> 我的評論
-            </button>
-            <button 
-              @click="activeTab = 'pref'"
-              :class="activeTab === 'pref' ? 'bg-primary text-white shadow-lg' : 'text-slate-600 hover:bg-slate-50'"
-              class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all font-bold mb-1 cursor-pointer border-none text-left"
-            >
-              <Sparkles class="w-5 h-5" /> AI 偏好設定
             </button>
           </nav>
         </div>
@@ -128,7 +144,7 @@ const handleDeleteReview = (id) => {
           </div>
           
           <div v-if="reviews.length > 0" class="space-y-6">
-            <div v-for="review in reviews" :key="review.id" class="glass-card p-8 rounded-[2.5rem] flex gap-8 hover:shadow-2xl transition-all border border-white/20">
+            <div v-for="review in reviews" :key="review.review_ID" class="glass-card p-8 rounded-[2.5rem] flex gap-8 hover:shadow-2xl transition-all border border-white/20">
               <div class="w-20 h-20 rounded-3xl bg-white shadow-md flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-100">
                 <img :src="review.logoUrl" :alt="review.toolName" class="w-14 h-14 object-contain">
               </div>
@@ -137,14 +153,14 @@ const handleDeleteReview = (id) => {
                   <div>
                     <h3 class="font-bold text-xl text-slate-900">{{ review.toolName }}</h3>
                     <div class="flex gap-1 text-orange-400 mt-2">
-                      <Star v-for="i in 5" :key="i" class="w-4 h-4" :class="{ 'fill-current': i <= review.rating, 'text-slate-200': i > review.rating }" />
+                      <Star v-for="i in 5" :key="i" class="w-4 h-4" :class="{ 'fill-current': i <= review.stars, 'text-slate-200': i > review.stars }" />
                     </div>
                   </div>
                   <div class="flex gap-2">
-                    <button class="p-3 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all cursor-pointer border-none bg-transparent">
+                    <RouterLink :to="`/tool/${review.tool_ID}`" class="p-3 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all cursor-pointer border-none bg-transparent">
                       <Edit3 class="w-5 h-5" />
-                    </button>
-                    <button @click="handleDeleteReview(review.id)" class="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer border-none bg-transparent">
+                    </RouterLink>
+                    <button @click="handleDeleteReview(review.review_ID)" class="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer border-none bg-transparent">
                       <Trash2 class="w-5 h-5" />
                     </button>
                   </div>
@@ -163,68 +179,6 @@ const handleDeleteReview = (id) => {
           </div>
         </div>
 
-        <!-- AI 偏好設定 Tab -->
-        <div v-if="activeTab === 'pref'" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div class="mb-8">
-            <h1 class="text-3xl font-bold text-slate-900 mb-2">AI 偏好設定</h1>
-            <p class="text-slate-500 text-lg">告訴我們您的背景與需求，讓我們能為您提供更精確的工具推薦。</p>
-          </div>
-
-          <div class="space-y-8">
-            <!-- 自訂需求 Textarea -->
-            <section class="glass-card p-10 rounded-[3rem] border border-white/20 shadow-xl">
-              <div class="flex justify-between items-center mb-8">
-                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-3">
-                  <div class="p-2 bg-primary/10 rounded-xl">
-                    <Sparkles class="w-6 h-6 text-primary" />
-                  </div>
-                  自訂背景與工具需求
-                </h3>
-              </div>
-              
-              <textarea 
-                v-model="customContext"
-                placeholder="請描述您的職業背景、具體的使用情境與偏好。
-範例：我是一名在電商工作的行銷經理，經常需要撰寫產品文案與社群貼文。我偏好支援繁體中文且易於協作的工具，預算在每月 20 美金以內。"
-                class="w-full h-56 p-6 rounded-[2rem] bg-slate-50/50 border border-slate-200 focus:ring-4 focus:ring-primary/10 focus:bg-white text-slate-800 placeholder:text-slate-400 resize-none outline-none transition-all text-lg leading-relaxed"
-              ></textarea>
-              
-              <div class="mt-6 flex items-start gap-4 p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
-                <Info class="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div class="text-blue-700 leading-relaxed">
-                  <p class="font-bold mb-1">專家提示：</p>
-                  包含您的<span class="font-bold underline">職業</span>、<span class="font-bold underline">任務目標</span>（如寫論文、剪影片）以及<span class="font-bold underline">具體偏好</span>（如免費、中文介面），能讓推薦系統更懂您。
-                </div>
-              </div>
-            </section>
-
-            <!-- 預覽生成的 System Prompt -->
-            <section class="bg-slate-900 rounded-[3.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-              <div class="absolute top-0 right-0 p-8 opacity-10">
-                <Sparkles class="w-32 h-32" />
-              </div>
-              <div class="relative z-10">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                  <h3 class="text-2xl font-bold flex items-center gap-3">
-                    <Sparkles class="w-8 h-8 text-yellow-400" /> 您的專屬 AI 畫像
-                  </h3>
-                  <button class="px-6 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition-all border border-white/10 cursor-pointer">
-                    複製畫像內容
-                  </button>
-                </div>
-                <div class="bg-black/30 p-10 rounded-[2rem] font-mono text-base text-blue-100 leading-relaxed whitespace-pre-wrap border border-white/5 shadow-inner min-h-[160px]">
-                  {{ customContext ? `使用者背景與偏好：\n${customContext}` : "尚未填寫任何資訊，建議至少填寫職業背景，讓我們為您打造專屬推薦。" }}
-                </div>
-                <div class="mt-10 flex justify-end">
-                  <button class="bg-primary hover:bg-primary/90 text-white px-12 py-5 rounded-2xl font-bold shadow-2xl shadow-primary/40 transition-all flex items-center gap-3 border-none cursor-pointer text-lg">
-                    <Save class="w-6 h-6" /> 儲存偏好設定
-                  </button>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
@@ -235,5 +189,12 @@ const handleDeleteReview = (id) => {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
 }
-</style>
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+</style>

@@ -22,6 +22,15 @@ const tools = ref([])
 const categories = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
+const currentSort = ref('rating') // 預設依評分高低排序
+
+// 分頁狀態
+const currentPage = ref(1)
+const pagination = ref({
+  total_items: 0,
+  total_pages: 1,
+  current_page: 1
+})
 
 // 篩選條件
 const selectedCategories = ref([])
@@ -52,37 +61,50 @@ const fetchCategories = async () => {
   }
 }
 
-// 獲取工具清單 (含搜尋與篩選)
-const fetchTools = async () => {
+// 獲取工具清單 (含搜尋、篩選、排序與分頁)
+const fetchTools = async (page = 1) => {
   loading.value = true
+  currentPage.value = page
   try {
     const params = new URLSearchParams()
     if (searchQuery.value) params.append('q', searchQuery.value)
     if (selectedCategories.value.length > 0) params.append('categories', selectedCategories.value.join(','))
     if (selectedPrices.value.length > 0) params.append('prices', selectedPrices.value.join(','))
     if (minRating.value > 0) params.append('rating', minRating.value)
+    params.append('sort', currentSort.value)
+    params.append('page', page)
+    params.append('per_page', 12)
 
     const response = await axios.get(`/api/search_tools.php?${params.toString()}`)
-    tools.value = response.data
+    
+    // 處理分頁回傳格式
+    if (response.data.tools) {
+      tools.value = response.data.tools
+      pagination.value = response.data.pagination
+    } else {
+      tools.value = response.data
+      pagination.value = { total_items: tools.value.length, total_pages: 1, current_page: 1 }
+    }
   } catch (err) {
     console.error('獲取工具失敗:', err)
   } finally {
     loading.value = false
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
-// 監聽篩選條件變化
-watch([selectedCategories, selectedPrices, minRating], () => {
-  fetchTools()
+// 監聽所有篩選與排序條件 (條件改變時回到第一頁)
+watch([selectedCategories, selectedPrices, minRating, currentSort], () => {
+  fetchTools(1)
 }, { deep: true })
 
-// 處理搜尋 (防抖)
+// 處理搜尋 (打字即搜尋)
 let searchTimeout = null
 const handleSearch = () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    fetchTools()
-  }, 500)
+    fetchTools(1)
+  }, 300)
 }
 
 const clearFilters = () => {
@@ -90,12 +112,13 @@ const clearFilters = () => {
   selectedPrices.value = []
   minRating.value = 0
   searchQuery.value = ''
-  fetchTools()
+  currentSort.value = 'rating'
+  fetchTools(1)
 }
 
 onMounted(() => {
   fetchCategories()
-  fetchTools()
+  fetchTools(1)
 })
 </script>
 
@@ -206,15 +229,14 @@ onMounted(() => {
         <main class="flex-1">
           <div class="mb-6 flex items-center justify-between">
             <div class="text-slate-500 font-medium">
-              共找到 <span class="text-slate-900 font-bold">{{ tools.length }}</span> 個工具
+              共找到 <span class="text-slate-900 font-bold">{{ pagination.total_items }}</span> 個工具
             </div>
             
             <div class="flex items-center gap-2 text-sm text-slate-500">
               排序方式：
-              <select class="bg-transparent border-none font-bold text-slate-900 outline-none cursor-pointer">
-                <option>熱門程度</option>
-                <option>最新收錄</option>
-                <option>評分最高</option>
+              <select v-model="currentSort" class="bg-transparent border-none font-bold text-slate-900 outline-none cursor-pointer">
+                <option value="rating">評分高低</option>
+                <option value="reviews">留言數量</option>
               </select>
             </div>
           </div>
@@ -247,6 +269,35 @@ onMounted(() => {
               :isFavorited="isFavorited(tool.id)"
               @toggleFavorite="toggleFavorite(tool)"
             />
+          </div>
+
+          <!-- 分頁導覽 -->
+          <div v-if="pagination.total_pages > 1" class="mt-16 flex justify-center items-center gap-2">
+            <button 
+              @click="fetchTools(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronDown class="w-5 h-5 rotate-90" />
+            </button>
+
+            <button 
+              v-for="p in pagination.total_pages" 
+              :key="p"
+              @click="fetchTools(p)"
+              class="w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all"
+              :class="currentPage === p ? 'bg-primary text-white shadow-lg' : 'bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary'"
+            >
+              {{ p }}
+            </button>
+
+            <button 
+              @click="fetchTools(currentPage + 1)"
+              :disabled="currentPage === pagination.total_pages"
+              class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronDown class="w-5 h-5 -rotate-90" />
+            </button>
           </div>
         </main>
       </div>

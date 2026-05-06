@@ -38,7 +38,7 @@ try {
         $tool['id'] = (int)$tool['id'];
         $tool['rating'] = round((float)$tool['rating'], 1);
         $tool['tags'] = [$tool['category_name']]; // 暫時用分類當標籤
-        
+
         if (!$tool['logoUrl']) {
             $tool['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . $tool['name'];
         }
@@ -46,7 +46,7 @@ try {
         // 處理價格方案 JSON
         $plansData = json_decode($tool['pricing_plans'], true);
         $tool['plans'] = isset($plansData['plans']) ? $plansData['plans'] : [];
-        
+
         // 為了相容前端，將 plans 裡的 price 補上符號（如果需要的話）
         foreach ($tool['plans'] as &$plan) {
             if (is_numeric($plan['price']) && $plan['price'] != '0') {
@@ -63,7 +63,6 @@ try {
         http_response_code(404);
         echo json_encode(['error' => '找不到工具']);
     }
-
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);

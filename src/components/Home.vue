@@ -28,25 +28,57 @@ const { toggleFavorite, isFavorited } = useFavorites()
 const popularTools = ref([])
 const isLoading = ref(true)
 const apiError = ref('')
+const searchQuery = ref('')
+const currentCid = ref('')
+const currentSort = ref('rating') // 預設依評分高低
+const sectionTitle = ref('本週熱門工具')
 
-const fetchTools = async () => {
+const fetchTools = async (keyword = '', cid = '', sort = 'rating') => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/get_tools.php')
+    const url = `/api/get_tools.php?keyword=${encodeURIComponent(keyword)}&cid=${cid}&sort=${sort}`;
+    const response = await axios.get(url);
     
-    if (Array.isArray(response.data)) {
-      popularTools.value = response.data.slice(0, 8)
+    const toolList = response.data.tools || response.data;
+    
+    if (Array.isArray(toolList)) {
+      popularTools.value = toolList
       apiError.value = ''
+      
+      if (keyword) {
+        sectionTitle.value = `搜尋結果："${keyword}"`
+      } else if (cid) {
+        const categories = { '1': '文字生成', '2': '圖像生成', '3': '影片製作', '4': '程式開發', '5': '語音生成' }
+        sectionTitle.value = `${categories[cid] || '分類'}工具`
+      } else {
+        sectionTitle.value = '本週熱門工具'
+      }
     } else {
       throw new Error(response.data.error || '資料格式錯誤')
     }
   } catch (error) {
-    console.error('取得資料庫資料失敗:', error)
-    apiError.value = '無法載入資料庫內容，請檢查 XAMPP 連線。'
+    console.error('API 請求失敗:', error)
+    apiError.value = `API 請求失敗: ${error.message}`
     popularTools.value = []
   } finally {
     isLoading.value = false
   }
+}
+
+const handleSearch = () => {
+  currentCid.value = ''
+  fetchTools(searchQuery.value, '', currentSort.value)
+}
+
+const filterByCategory = (cid) => {
+  searchQuery.value = ''
+  currentCid.value = cid
+  fetchTools('', cid, currentSort.value)
+  document.getElementById('tools-section').scrollIntoView({ behavior: 'smooth' })
+}
+
+const handleSortChange = () => {
+  fetchTools(searchQuery.value, currentCid.value, currentSort.value)
 }
 
 onMounted(() => {
@@ -80,12 +112,18 @@ onMounted(() => {
             </div>
 
             <input
+              v-model="searchQuery"
               type="text"
-              placeholder="尋找：寫作助理、圖像生成、影片剪輯..."
+              placeholder="輸入關鍵字立即搜尋工具..."
               class="w-full pl-14 pr-32 py-5 bg-white text-slate-900 rounded-2xl shadow-2xl outline-none focus:ring-4 focus:ring-primary/20 transition-all text-lg border-none"
+              @input="handleSearch"
+              @keyup.enter="handleSearch"
             >
 
-            <button class="absolute inset-y-2 right-2 px-8 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all flex items-center justify-center whitespace-nowrap min-w-[100px] border-none cursor-pointer">
+            <button 
+              @click="handleSearch"
+              class="absolute inset-y-2 right-2 px-8 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all flex items-center justify-center whitespace-nowrap min-w-[100px] border-none cursor-pointer"
+            >
               搜尋
             </button>
           </div>
@@ -137,16 +175,31 @@ onMounted(() => {
       </section>
 
       <!-- Popular AI Tools -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div class="flex justify-between items-end mb-12">
+      <section id="tools-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
           <div>
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">本週熱門工具</h2>
+            <h2 class="text-3xl font-bold text-slate-900 mb-2">{{ sectionTitle }}</h2>
             <p class="text-slate-500">當前社區評分最高與使用最廣泛的工具。</p>
           </div>
 
-          <RouterLink to="/tools" class="text-primary font-semibold flex items-center gap-1 hover:underline no-underline">
-            查看更多 <ChevronRight class="w-4 h-4" />
-          </RouterLink>
+          <div class="flex items-center gap-4 w-full md:w-auto">
+            <select 
+              v-model="currentSort" 
+              @change="handleSortChange"
+              class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
+            >
+              <option value="rating">依評分高低排序</option>
+              <option value="reviews">依留言數量排序</option>
+            </select>
+
+            <button 
+              v-if="searchQuery || currentCid"
+              @click="searchQuery = ''; currentCid = ''; fetchTools()"
+              class="text-primary font-semibold flex items-center gap-1 hover:underline no-underline bg-transparent border-none cursor-pointer whitespace-nowrap"
+            >
+              重設搜尋
+            </button>
+          </div>
         </div>
 
         <!-- 錯誤訊息提示 -->
@@ -179,40 +232,40 @@ onMounted(() => {
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          <RouterLink to="/category/1" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <button @click="filterByCategory('1')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
             <div class="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-primary mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Type class="w-8 h-8" />
             </div>
             <span class="font-bold text-slate-900 group-hover:text-primary">文字生成</span>
-          </RouterLink>
+          </button>
 
-          <RouterLink to="/category/2" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <button @click="filterByCategory('2')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
             <div class="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Palette class="w-8 h-8" />
             </div>
             <span class="font-bold text-slate-900 group-hover:text-primary">圖像生成</span>
-          </RouterLink>
+          </button>
 
-          <RouterLink to="/category/3" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <button @click="filterByCategory('3')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
             <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Video class="w-8 h-8" />
             </div>
             <span class="font-bold text-slate-900 group-hover:text-primary">影片製作</span>
-          </RouterLink>
+          </button>
 
-          <RouterLink to="/category/4" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <button @click="filterByCategory('4')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
             <div class="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Code class="w-8 h-8" />
             </div>
             <span class="font-bold text-slate-900 group-hover:text-primary">程式開發</span>
-          </RouterLink>
+          </button>
 
-          <RouterLink to="/category/5" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
+          <button @click="filterByCategory('5')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
             <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Music class="w-8 h-8" />
             </div>
             <span class="font-bold text-slate-900 group-hover:text-primary">語音生成</span>
-          </RouterLink>
+          </button>
 
           <RouterLink to="/tools" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
             <div class="w-16 h-16 rounded-2xl bg-yellow-50 flex items-center justify-center text-yellow-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -274,8 +327,6 @@ onMounted(() => {
                 alt="AI tools workspace"
               >
             </div>
-
-            
           </div>
         </div>
       </section>
