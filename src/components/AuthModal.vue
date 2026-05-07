@@ -12,6 +12,7 @@ import {
 } from 'lucide-vue-next'
 import axios from 'axios'
 import { useAuth } from '../composables/useAuth.js'
+import { useFavorites } from '../composables/useFavorites.js'
 
 const props = defineProps({
   isOpen: {
@@ -34,6 +35,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const { checkAuth } = useAuth(); // Import auth state checker
+const { syncFavorites } = useFavorites(); // Import favorites sync
 
 const formData = reactive({
   username: '',
@@ -121,7 +123,8 @@ const handleAuth = async () => {
       localStorage.setItem('user', JSON.stringify(response.data.user || {}))
 
       // Trigger the shared global state to update
-      checkAuth();
+      await checkAuth();
+      await syncFavorites();
 
       emit('login-success', response.data)
       closeModal()

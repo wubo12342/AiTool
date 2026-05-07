@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { Bot, LogIn, UserPlus, Menu, X, LogOut, LayoutDashboard } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth.js'
+import { useFavorites } from '../composables/useFavorites.js'
 
 const router = useRouter()
 const isMenuOpen = ref(false)
@@ -10,9 +11,13 @@ const isMenuOpen = ref(false)
 const emit = defineEmits(['openAuth'])
 
 const { isLoggedIn, checkAuth, handleLogout } = useAuth()
+const { syncFavorites } = useFavorites()
 
-onMounted(() => {
-  checkAuth()
+onMounted(async () => {
+  await checkAuth()
+  if (isLoggedIn.value) {
+    syncFavorites()
+  }
 })
 
 const doLogout = () => {

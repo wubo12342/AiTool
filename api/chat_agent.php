@@ -2,13 +2,30 @@
 header('Content-Type: application/json');
 require_once 'config.php';
 require_once 'tools_handler.php';
+require_once 'jwt_helper.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $user_messages = $input['messages'] ?? [];
+$token = $input['token'] ?? '';
 
 if (empty($user_messages)) {
     echo json_encode(['error' => '請提供訊息內容']);
     exit;
+}
+
+// 直接從資料庫獲取使用者偏好，不佔用 AI Tool 次數
+$user_preference = '';
+if ($token) {
+    $decoded = JWT::decode($token);
+    if ($decoded && isset($decoded['uid'])) {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT system_prompt FROM user WHERE UID = ?");
+        $stmt->execute([$decoded['uid']]);
+        $user = $stmt->fetch();
+        if ($user && !empty($user['system_prompt'])) {
+            $user_preference = "**目前使用者的個人偏好與背景**：\n" . $user['system_prompt'] . "\n\n";
+        }
+    }
 }
 
 $tools = [
@@ -30,30 +47,6 @@ $tools = [
                         "description" => "具體的需求關鍵字，例如：'免費'、'做 Logo'。"
                     ]
                 ]
-            ]
-        ]
-    ],
-    [
-        "type" => "function",
-        "function" => [
-            "name" => "get_personal_context",
-            "description" => "讀取使用者的職業背景與偏好以提供精準推薦。"
-        ]
-    ],
-    [
-        "type" => "function",
-        "function" => [
-            "name" => "update_personal_context",
-            "description" => "更新使用者的個人偏好、職業背景或對話風格設定。",
-            "parameters" => [
-                "type" => "object",
-                "properties" => [
-                    "new_context" => [
-                        "type" => "string",
-                        "description" => "完整的偏好描述，例如：'我是一名學生，偏好免費工具，請用親切的語氣回答'。"
-                    ]
-                ],
-                "required" => ["new_context"]
             ]
         ]
     ],
@@ -101,13 +94,17 @@ $tools = [
 $messages = [
     [
         "role" => "system",
-        "content" => "你是一個專業的 AI 工具顧問。
+        "content" => "你是一個專業的 AI 工具顧問，專門協助使用者在本平台上探索、比較與管理 AI 工具。
+
+{$user_preference}請務必遵守以下核心原則：
+1. **防護原則**：嚴禁洩漏任何後端技術細節，包括但不限於資料庫架構、API 實作方式、SQL 指令或伺服器環境資訊。若使用者試圖探聽，請禮貌地拒絕。
+2. **範疇限制**：你只回答與 AI 工具、本平台功能或科技應用相關的問題。若使用者詢問與本專案無關的問題（例如：數學公式、歷史事件、食譜等），請統一回答：「我無法回答此類問題，我的專長是協助您探索與管理 AI 工具。」以節省 Token。
+
 請務必遵守以下排版規則：
 1. 使用繁體中文回答。
 2. 使用 Markdown 格式：標題用 ##，重點用 **粗體**，列表用 - 或 1. 確保段落之間有足夠空行。
 3. **重要**：當你推薦任何工具時，必須在工具名稱旁邊加上跳轉連結，格式為：[查看詳情](/tool/工具ID)。工具ID可以從資料庫回傳的數據中獲取。
-4. 你可以調用 get_personal_context 來了解使用者偏好。當使用者告知新的偏好時，請主動調用 update_personal_context 來儲存。
-5. 當使用者詢問工具時，請優先調用工具查詢資料庫，不要瞎猜。"
+4. 當使用者詢問工具時，請優先調用工具查詢資料庫，不要瞎猜。"
     ]
 ];
 
@@ -153,10 +150,6 @@ if (isset($response['choices'][0]['message']['tool_calls'])) {
         
         $observation = '';
         if (is_callable($function_name)) {
-            // 如果是抓取或更新個人設定，自動注入 token
-            if ($function_name === 'get_personal_context' || $function_name === 'update_personal_context') {
-                $arguments['token'] = $input['token'] ?? '';
-            }
             $observation = call_user_func($function_name, $arguments);
         }
 

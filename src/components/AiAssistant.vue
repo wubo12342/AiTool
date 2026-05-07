@@ -13,14 +13,14 @@ const scrollArea = ref(null)
 const showSettings = ref(false)
 
 // 個人偏好設定
-const userPreferences = ref('尚未讀取設定...')
+const userPreferences = ref('')
 const isSavingPrefs = ref(false)
 
 const messages = reactive([
   {
     id: 1,
     role: 'ai',
-    content: '您好！我是您的 AI 助理。我會根據您的偏好為您推薦最適合的工具。\n\n您可以點擊上方的 **設定圖示** 來調整您的 AI 偏好。',
+    content: '您好！我是您的 AI 助理。您可以點擊右上角的 **設定圖示** 來告訴我您的職業背景或偏好，讓我能提供更精準的建議。',
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 ])
@@ -48,10 +48,11 @@ const fetchPreferences = async () => {
   }
 
   try {
-    const dbResponse = await axios.get('/api/update_profile.php', {
-       headers: { 'Authorization': `Bearer ${token}` }
+    const response = await axios.post('/api/update_profile.php', {
+       action: 'get',
+       token: token
     })
-    userPreferences.value = dbResponse.data.system_prompt || '尚未設定任何偏好。'
+    userPreferences.value = response.data.system_prompt || ''
   } catch (error) {
     console.error('讀取偏好失敗:', error)
   }
@@ -63,24 +64,24 @@ const savePreferences = async () => {
 
   isSavingPrefs.value = true
   try {
-    const response = await fetch('/api/chat_agent.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: token,
-        messages: [{ role: 'user', content: `請將我的個人偏好設定更新為：${userPreferences.value}` }]
-      })
+    const response = await axios.post('/api/update_profile.php', {
+      action: 'save',
+      token: token,
+      system_prompt: userPreferences.value
     })
-    const data = await response.json()
     
-    messages.push({
-      id: Date.now(),
-      role: 'ai',
-      content: data.content,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    })
-    showSettings.value = false
-    scrollToBottom()
+    if (response.data.success) {
+      messages.push({
+        id: Date.now(),
+        role: 'ai',
+        content: '偏好設定已成功更新！下次對話時我會記住您的設定。',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      })
+      showSettings.value = false
+      scrollToBottom()
+    } else {
+      throw new Error('更新失敗')
+    }
   } catch (error) {
     alert('更新失敗')
   } finally {
