@@ -4,6 +4,7 @@ import ToolDetail from '../components/ToolDetail.vue'
 import Profile from '../components/Profile.vue'
 import CategoryExplore from '../components/CategoryExplore.vue'
 import ToolsList from '../components/ToolsList.vue'
+import FeatureComparison from '../components/FeatureComparison.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -27,6 +28,10 @@ const router = createRouter({
     {
       path: '/tools',
       component: ToolsList
+    },
+    {
+      path: '/compare',
+      component: FeatureComparison
     }
   ]
 })
