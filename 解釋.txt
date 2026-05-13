@@ -1,0 +1,39 @@
+# Docker 常用執行指令指南
+
+### 1. 啟動服務 (最常用)
+- 啟動所有服務並在背景執行：
+  docker-compose up -d
+
+- 重新建置並啟動 (當你修改了 Dockerfile 或需要重新安裝套件時)：
+  docker-compose up -d --build
+
+### 2. 停止服務
+- 停止並移除容器 (資料庫內容若有掛載 volume 則會保留)：
+  docker-compose down
+
+- 停止並移除容器、網路以及「所有相關磁碟卷 (Volumes)」(注意：這會清空資料庫資料！)：
+  docker-compose down -v
+
+### 3. 查看日誌 (Debug 必備)
+- 查看所有容器的即時日誌：
+  docker-compose logs -f
+
+- 只查看特定服務的日誌 (例如後端)：
+  docker-compose logs -f app
+
+### 4. 進入容器內部
+- 進入後端容器執行指令：
+  docker-compose exec app bash
+
+- 進入前端容器執行指令：
+  docker-compose exec frontend sh
+
+### 5. 其他實用指令
+- 查看目前容器狀態：
+  docker-compose ps
+
+- 重啟特定服務：
+  docker-compose restart app
+
+- 查看資料庫是否正常運作 (手動登入資料庫)：
+  docker-compose exec db mariadb -u root -proot ai_tools

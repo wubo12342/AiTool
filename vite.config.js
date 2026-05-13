@@ -9,9 +9,10 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
+    host: '0.0.0.0', // 確保 Docker 外部可以存取
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8080/AiTool/api',
+        target: 'http://app:80/api',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
