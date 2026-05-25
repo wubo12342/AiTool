@@ -1,9 +1,8 @@
 <?php
-require_once 'jwt_helper.php';
+// api/verify.php — 驗證前端送來的 JWT 是否仍有效
+require_once __DIR__ . '/cors.php';
+require_once __DIR__ . '/jwt_helper.php';
 
-header('Content-Type: application/json');
-
-// 取得前端傳來的 JSON 資料
 $data = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($data['token'])) {
@@ -11,7 +10,6 @@ if (!isset($data['token'])) {
     exit;
 }
 
-// 驗證 JWT，如果被竄改或過期，JWT::decode 會回傳 false
 $decoded = JWT::decode($data['token']);
 
 if ($decoded) {
@@ -19,4 +17,3 @@ if ($decoded) {
 } else {
     echo json_encode(['valid' => false, 'error' => 'Invalid or expired token']);
 }
-?>

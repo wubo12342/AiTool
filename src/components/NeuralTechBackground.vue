@@ -1,9 +1,12 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 
 let canvas, ctx
 let particles = []
 let mouse = { x: null, y: null }
+let rafId = null
+
+const canvasRef = ref(null)
 
 const COLORS = [
   'rgba(59,130,246,',   // 藍
@@ -11,7 +14,7 @@ const COLORS = [
   'rgba(236,72,153,'    // 粉
 ]
 
-const COUNT = 60 // 👉 減少一點，更乾淨
+const COUNT = 60
 
 const init = () => {
   particles = []
@@ -27,14 +30,15 @@ const init = () => {
 }
 
 const draw = () => {
+  if (!ctx || !canvas) return
+
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
   particles.forEach(p => {
     p.x += p.vx
     p.y += p.vy
 
-    // 👉 輕微滑鼠排斥（很弱）
-    if (mouse.x) {
+    if (mouse.x !== null) {
       const dx = p.x - mouse.x
       const dy = p.y - mouse.y
       const dist = Math.sqrt(dx * dx + dy * dy)
@@ -49,9 +53,8 @@ const draw = () => {
     if (p.x < 0 || p.x > canvas.width) p.vx *= -1
     if (p.y < 0 || p.y > canvas.height) p.vy *= -1
 
-    // ✨ 超淡 glow 粒子（重點）
     const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 6)
-    gradient.addColorStop(0, p.color + '0.25)') // 👈 降低亮度
+    gradient.addColorStop(0, p.color + '0.25)')
     gradient.addColorStop(1, p.color + '0)')
 
     ctx.beginPath()
@@ -60,7 +63,6 @@ const draw = () => {
     ctx.fill()
   })
 
-  // 🔗 線條（幾乎隱形）
   for (let i = 0; i < particles.length; i++) {
     for (let j = i + 1; j < particles.length; j++) {
       const dx = particles[i].x - particles[j].x
@@ -71,7 +73,6 @@ const draw = () => {
         ctx.beginPath()
         ctx.moveTo(particles[i].x, particles[i].y)
         ctx.lineTo(particles[j].x, particles[j].y)
-
         ctx.strokeStyle = `rgba(148,163,184,${0.20 * (1 - dist / 110)})`
         ctx.lineWidth = 0.8
         ctx.stroke()
@@ -79,11 +80,25 @@ const draw = () => {
     }
   }
 
-  requestAnimationFrame(draw)
+  rafId = requestAnimationFrame(draw)
+}
+
+// 命名函數，這樣才能在 unmount 時 removeEventListener
+const handleMouseMove = (e) => {
+  mouse.x = e.clientX
+  mouse.y = e.clientY
+}
+
+const handleResize = () => {
+  if (!canvas) return
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  init()
 }
 
 onMounted(() => {
-  canvas = document.getElementById('bg')
+  canvas = canvasRef.value
+  if (!canvas) return
   ctx = canvas.getContext('2d')
 
   canvas.width = window.innerWidth
@@ -92,19 +107,24 @@ onMounted(() => {
   init()
   draw()
 
-  window.addEventListener('mousemove', e => {
-    mouse.x = e.clientX
-    mouse.y = e.clientY
-  })
+  window.addEventListener('mousemove', handleMouseMove)
+  window.addEventListener('resize', handleResize)
+})
 
-  window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-    init()
-  })
+// H10 — unmount 時把所有東西清乾淨
+onBeforeUnmount(() => {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
+  window.removeEventListener('mousemove', handleMouseMove)
+  window.removeEventListener('resize', handleResize)
+  particles = []
+  ctx = null
+  canvas = null
 })
 </script>
 
 <template>
-  <canvas id="bg" class="fixed inset-0 -z-10"></canvas>
+  <canvas ref="canvasRef" class="fixed inset-0 -z-10"></canvas>
 </template>

@@ -1,20 +1,20 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 import axios from 'axios'
-import { 
-  Search, 
-  Filter, 
-  Star, 
-  LayoutGrid, 
+import {
+  Search,
+  Grid,
+  DollarSign,
+  Layers,
   Loader2,
-  X,
-  ChevronDown,
-  Check
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-vue-next'
 import ToolCard from './ToolCard.vue'
-import NeuralTechBackground from './NeuralTechBackground.vue'
 import { useFavorites } from '../composables/useFavorites.js'
 
+const route = useRoute()
 const { toggleFavorite, isFavorited } = useFavorites()
 
 // 狀態管理
@@ -117,194 +117,207 @@ const clearFilters = () => {
 }
 
 onMounted(() => {
+  // H4 — 支援從 /search?q=xxx 或 /tools?q=xxx 帶搜尋詞進來
+  const initialQuery = route.query.q
+  if (typeof initialQuery === 'string' && initialQuery.trim() !== '') {
+    searchQuery.value = initialQuery.trim()
+  }
   fetchCategories()
   fetchTools(1)
+})
+
+// 路由 query 變動時（例如點不同熱門詞而沒離開頁面）也跟著更新
+watch(() => route.query.q, (q) => {
+  if (typeof q === 'string') {
+    searchQuery.value = q.trim()
+    fetchTools(1)
+  }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 pt-24 pb-20 relative overflow-hidden">
-    <NeuralTechBackground />
-    
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- 頂部搜尋欄 -->
-      <div class="mb-12">
-        <h1 class="text-4xl font-extrabold text-slate-900 mb-8 text-center">探索所有 AI 工具</h1>
-        
-        <div class="max-w-5xl mx-auto relative group">
-          <div class="absolute inset-0 bg-primary/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <div class="relative flex items-center bg-white rounded-2xl shadow-xl p-2 border border-slate-100">
-            <Search class="w-6 h-6 text-slate-400 ml-4" />
-            <input 
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb & Title -->
+    <div class="mb-10">
+      <nav class="flex text-slate-400 text-sm mb-4" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+          <li class="inline-flex items-center">
+            <RouterLink to="/" class="hover:text-primary no-underline">首頁</RouterLink>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <ChevronRight class="w-4 h-4" />
+              <span class="ml-1 md:ml-2">所有工具</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+      <h1 class="text-3xl md:text-4xl font-bold text-slate-900">探索所有 AI 工具</h1>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-12">
+      <!-- Sidebar Filters -->
+      <aside class="w-full lg:w-72 flex-shrink-0">
+        <div class="sticky top-24 space-y-8">
+          <!-- Search within results -->
+          <div>
+            <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Search class="w-5 h-5 text-primary" /> 關鍵字搜尋
+            </h3>
+            <input
               v-model="searchQuery"
               @input="handleSearch"
-              type="text" 
-              placeholder="輸入名稱、功能或關鍵字搜尋..." 
-              class="w-full pl-4 pr-4 py-4 text-lg border-none focus:ring-0 outline-none"
+              type="text"
+              placeholder="例如：寫作助理..."
+              class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all"
             >
-            <button 
-              @click="fetchTools"
-              class="px-16 py-4 bg-primary text-white rounded-xl font-bold hover:shadow-lg transition-all border-none cursor-pointer flex items-center justify-center whitespace-nowrap min-w-[140px]"
+          </div>
+
+          <!-- Category Filter -->
+          <div>
+            <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Grid class="w-5 h-5 text-primary" /> 工具分類
+            </h3>
+            <div class="space-y-3">
+              <label
+                v-for="cat in categories"
+                :key="cat.id"
+                class="flex items-center gap-3 cursor-pointer group"
+              >
+                <input
+                  type="checkbox"
+                  :value="cat.id"
+                  v-model="selectedCategories"
+                  class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                >
+                <span class="text-slate-600 group-hover:text-primary transition-colors">{{ cat.name }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Price Type Filter -->
+          <div>
+            <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <DollarSign class="w-5 h-5 text-primary" /> 價格方案
+            </h3>
+            <div class="space-y-3">
+              <label
+                v-for="price in priceOptions"
+                :key="price.value"
+                class="flex items-center gap-3 cursor-pointer group"
+              >
+                <input
+                  type="checkbox"
+                  :value="price.value"
+                  v-model="selectedPrices"
+                  class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                >
+                <span class="text-slate-600 group-hover:text-primary transition-colors">{{ price.label }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Minimum Rating Filter -->
+          <div>
+            <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Layers class="w-5 h-5 text-primary" /> 最低評分
+            </h3>
+            <select
+              v-model="minRating"
+              class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-primary transition-all bg-white"
             >
-              搜尋
-            </button>
+              <option v-for="rate in ratingOptions" :key="rate.value" :value="rate.value">
+                {{ rate.label }}
+              </option>
+            </select>
+          </div>
+
+          <button
+            @click="fetchTools(1)"
+            class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all border-none cursor-pointer"
+          >
+            套用篩選
+          </button>
+        </div>
+      </aside>
+
+      <!-- Tool Grid & Sorting -->
+      <div class="flex-1">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <span class="text-slate-500 font-medium">
+            找到 <span class="text-slate-900 font-bold">{{ pagination.total_items }}</span> 個符合條件的工具
+          </span>
+          <div class="flex items-center gap-3">
+            <span class="text-slate-500 text-sm whitespace-nowrap">排序方式：</span>
+            <select
+              v-model="currentSort"
+              class="px-4 py-2 rounded-lg border border-slate-200 outline-none focus:border-primary bg-white font-medium"
+            >
+              <option value="rating">評分最高</option>
+              <option value="reviews">留言最多</option>
+            </select>
           </div>
         </div>
-      </div>
 
-      <div class="flex flex-col lg:flex-row gap-10">
-        <!-- 左側篩選側邊欄 -->
-        <aside class="lg:w-72 flex-shrink-0">
-          <div class="sticky top-28 bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-white shadow-xl">
-            <div class="flex items-center justify-between mb-8">
-              <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Filter class="w-5 h-5 text-primary" />
-                篩選條件
-              </h2>
-              <button 
-                @click="clearFilters"
-                class="text-xs text-slate-500 hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
-              >
-                重設
-              </button>
-            </div>
+        <!-- Loading -->
+        <div v-if="loading" class="py-32 text-center">
+          <Loader2 class="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+          <p class="text-slate-500 font-medium">正在為您篩選最佳工具...</p>
+        </div>
 
-            <!-- 工具分類 -->
-            <div class="mb-8">
-              <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">工具分類</h3>
-              <div class="flex flex-wrap gap-3">
-                <label v-for="cat in categories" :key="cat.id" class="flex items-center gap-2 group cursor-pointer bg-slate-50 px-3 py-2 rounded-lg hover:bg-primary/5 transition-colors border border-transparent peer-checked:border-primary">
-                  <div class="relative flex items-center">
-                    <input 
-                      type="checkbox" 
-                      :value="cat.id" 
-                      v-model="selectedCategories"
-                      class="peer appearance-none w-4 h-4 border-2 border-slate-200 rounded-md checked:bg-primary checked:border-primary transition-all cursor-pointer"
-                    >
-                    <Check class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 left-0.5 pointer-events-none transition-opacity" />
-                  </div>
-                  <span class="text-sm text-slate-600 group-hover:text-primary transition-colors">{{ cat.name }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- 價格方案 -->
-            <div class="mb-8">
-              <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">價格方案</h3>
-              <div class="flex flex-wrap gap-3">
-                <label v-for="price in priceOptions" :key="price.value" class="flex items-center gap-2 group cursor-pointer bg-slate-50 px-3 py-2 rounded-lg hover:bg-primary/5 transition-colors">
-                  <div class="relative flex items-center">
-                    <input 
-                      type="checkbox" 
-                      :value="price.value" 
-                      v-model="selectedPrices"
-                      class="peer appearance-none w-4 h-4 border-2 border-slate-200 rounded-md checked:bg-primary checked:border-primary transition-all cursor-pointer"
-                    >
-                    <Check class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 left-0.5 pointer-events-none transition-opacity" />
-                  </div>
-                  <span class="text-sm text-slate-600 group-hover:text-primary transition-colors">{{ price.label }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- 使用者評分 -->
-            <div>
-              <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">最低評分</h3>
-              <div class="relative">
-                <select 
-                  v-model="minRating"
-                  class="w-full bg-slate-50 border-2 border-transparent focus:border-primary/20 rounded-xl px-4 py-3 text-slate-600 font-medium outline-none transition-all appearance-none cursor-pointer"
-                >
-                  <option v-for="rate in ratingOptions" :key="rate.value" :value="rate.value">
-                    {{ rate.label }}
-                  </option>
-                </select>
-                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
+        <!-- Empty -->
+        <div v-else-if="tools.length === 0" class="py-32 text-center bg-white/50 rounded-[3rem] border-2 border-dashed border-slate-200">
+          <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Search class="w-10 h-10 text-slate-300" />
           </div>
-        </aside>
+          <h3 class="text-2xl font-bold text-slate-900 mb-2">找不到符合條件的工具</h3>
+          <p class="text-slate-500 mb-8">試試看更換關鍵字或放寬篩選條件。</p>
+          <button @click="clearFilters" class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold border-none cursor-pointer hover:bg-primary transition-all">
+            重設所有條件
+          </button>
+        </div>
 
-        <!-- 右側工具列表 -->
-        <main class="flex-1">
-          <div class="mb-6 flex items-center justify-between">
-            <div class="text-slate-500 font-medium">
-              共找到 <span class="text-slate-900 font-bold">{{ pagination.total_items }}</span> 個工具
-            </div>
-            
-            <div class="flex items-center gap-2 text-sm text-slate-500">
-              排序方式：
-              <select v-model="currentSort" class="bg-transparent border-none font-bold text-slate-900 outline-none cursor-pointer">
-                <option value="rating">評分高低</option>
-                <option value="reviews">留言數量</option>
-              </select>
-            </div>
-          </div>
+        <!-- Grid -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <ToolCard
+            v-for="tool in tools"
+            :key="tool.id"
+            v-bind="tool"
+            showFavoriteButton
+            :isFavorited="isFavorited(tool.id)"
+            @toggleFavorite="toggleFavorite(tool)"
+          />
+        </div>
 
-          <!-- Loading -->
-          <div v-if="loading" class="py-32 text-center">
-            <Loader2 class="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
-            <p class="text-slate-500 font-medium">正在為您篩選最佳工具...</p>
-          </div>
+        <!-- Pagination -->
+        <div v-if="pagination.total_pages > 1" class="mt-16 flex justify-center gap-2">
+          <button
+            @click="fetchTools(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="w-12 h-12 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+          >
+            <ChevronLeft class="w-5 h-5" />
+          </button>
 
-          <!-- Empty -->
-          <div v-else-if="tools.length === 0" class="py-32 text-center bg-white/50 backdrop-blur-sm rounded-[3rem] border-2 border-dashed border-slate-200">
-            <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Search class="w-10 h-10 text-slate-300" />
-            </div>
-            <h3 class="text-2xl font-bold text-slate-900 mb-2">找不到符合條件的工具</h3>
-            <p class="text-slate-500 mb-8">試試看更換關鍵字或放寬篩選條件。</p>
-            <button @click="clearFilters" class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold border-none cursor-pointer hover:bg-primary transition-all">
-              重設所有條件
-            </button>
-          </div>
+          <button
+            v-for="p in pagination.total_pages"
+            :key="p"
+            @click="fetchTools(p)"
+            class="w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all"
+            :class="currentPage === p ? 'bg-primary text-white' : 'border border-slate-200 bg-white text-slate-500 hover:border-primary hover:text-primary'"
+          >
+            {{ p }}
+          </button>
 
-          <!-- Grid -->
-          <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-            <ToolCard
-              v-for="tool in tools"
-              :key="tool.id"
-              v-bind="tool"
-              showFavoriteButton
-              :isFavorited="isFavorited(tool.id)"
-              @toggleFavorite="toggleFavorite(tool)"
-            />
-          </div>
-
-          <!-- 分頁導覽 -->
-          <div v-if="pagination.total_pages > 1" class="mt-16 flex justify-center items-center gap-2">
-            <button 
-              @click="fetchTools(currentPage - 1)"
-              :disabled="currentPage === 1"
-              class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              <ChevronDown class="w-5 h-5 rotate-90" />
-            </button>
-
-            <button 
-              v-for="p in pagination.total_pages" 
-              :key="p"
-              @click="fetchTools(p)"
-              class="w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all"
-              :class="currentPage === p ? 'bg-primary text-white shadow-lg' : 'bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary'"
-            >
-              {{ p }}
-            </button>
-
-            <button 
-              @click="fetchTools(currentPage + 1)"
-              :disabled="currentPage === pagination.total_pages"
-              class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              <ChevronDown class="w-5 h-5 -rotate-90" />
-            </button>
-          </div>
-        </main>
+          <button
+            @click="fetchTools(currentPage + 1)"
+            :disabled="currentPage === pagination.total_pages"
+            class="w-12 h-12 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white"
+          >
+            <ChevronRight class="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-/* 自定義 Checkbox 勾選圖示，因為前面沒 import Check，我們可以直接用 lucide 組件 */
-</style>

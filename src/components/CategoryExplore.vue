@@ -10,7 +10,6 @@ import {
   Filter,
   Loader2
 } from 'lucide-vue-next'
-import NeuralTechBackground from './NeuralTechBackground.vue'
 import ToolCard from './ToolCard.vue'
 import { useFavorites } from '../composables/useFavorites.js'
 
@@ -54,10 +53,7 @@ watch(() => route.params.id, fetchCategoryData)
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 pb-20 animate-in fade-in duration-500 relative overflow-hidden">
-    <!-- 加入動態科技背景 -->
-    <NeuralTechBackground />
-
+  <div class="min-h-screen pb-20 animate-in fade-in duration-500 relative overflow-hidden">
     <div class="relative z-8">
       <!-- Header Section -->
       <header class="pt-8 pb-8 relative overflow-hidden">

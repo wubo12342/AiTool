@@ -1,33 +1,30 @@
 <?php
 // api/get_favorites.php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+// H12 — 改用 POST + token 放在 body，避免 Token 進 URL 歷史/日誌
+require_once __DIR__ . '/cors.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/jwt_helper.php';
+require_once __DIR__ . '/response_helper.php';
 
-require_once 'db.php';
-require_once 'jwt_helper.php';
+$data = json_decode(file_get_contents('php://input'), true) ?? [];
+$token = $data['token'] ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
 
-// 處理預檢請求 (CORS)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
+// 容許 "Bearer xxx" 形式
+if (is_string($token) && stripos($token, 'Bearer ') === 0) {
+    $token = substr($token, 7);
 }
 
-$token = $_GET['token'] ?? '';
-
 if (!$token) {
-    echo json_encode(['success' => false, 'message' => '缺少 Token']);
-    exit;
+    send_unauthorized('缺少 Token');
 }
 
 try {
     $decoded = JWT::decode($token);
     if (!$decoded || !isset($decoded['uid'])) {
-        echo json_encode(['success' => false, 'message' => 'Token 無效']);
-        exit;
+        send_unauthorized('Token 無效');
     }
     $uid = $decoded['uid'];
 
-    // 取得該使用者的所有收藏工具 ID
     $stmt = $pdo->prepare("
         SELECT t.tool_ID as id, t.name, t.description, t.logo_url as logoUrl, t.website_url, c.name as category_name
         FROM user_likes l
@@ -41,18 +38,14 @@ try {
     foreach ($favorites as &$f) {
         $f['id'] = (int)$f['id'];
         $f['isFavorited'] = true;
-        $f['tags'] = [$f['category_name']];
+        $f['tags'] = $f['category_name'] ? [$f['category_name']] : [];
         if (!$f['logoUrl']) {
-            $f['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . $f['name'];
+            $f['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . urlencode($f['name']);
         }
     }
 
-    echo json_encode([
-        'success' => true,
-        'favorites' => $favorites
-    ]);
+    echo json_encode(['success' => true, 'favorites' => $favorites]);
 
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} catch (Throwable $e) {
+    send_server_error($e);
 }

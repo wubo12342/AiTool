@@ -1,7 +1,8 @@
 <?php
-require_once 'env_loader.php';
+require_once __DIR__ . '/env_loader.php';
+require_once __DIR__ . '/response_helper.php';
 
-// 資料庫設定 - 優先從環境變數讀取，若無則使用預設值
+// 資料庫設定 - 與 db.php 同步預設值
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'ai_tools');
 define('DB_USER', getenv('DB_USER') ?: 'root');
@@ -17,7 +18,7 @@ define('OPENAI_MODEL', getenv('OPENAI_MODEL') ?: 'gpt-4o');
 function getDB()
 {
     try {
-        $pdo = new PDO(
+        return new PDO(
             "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
             DB_USER,
             DB_PASS,
@@ -27,10 +28,7 @@ function getDB()
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]
         );
-        return $pdo;
     } catch (PDOException $e) {
-        header('Content-Type: application/json', true, 500);
-        echo json_encode(['error' => '資料庫連線失敗: ' . $e->getMessage()]);
-        exit;
+        send_server_error($e, '資料庫連線失敗');
     }
 }

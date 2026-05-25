@@ -23,15 +23,15 @@ loadLocalFavorites();
 export function useFavorites() {
   
   // 從資料庫同步收藏清單
+  // H12 — 改用 POST，把 token 放在 body，不要塞在 URL query
   const syncFavorites = async () => {
     const token = localStorage.getItem('jwt_token');
     if (!token) return;
 
     try {
-      const response = await axios.get(`/api/get_favorites.php?token=${token}`);
+      const response = await axios.post('/api/get_favorites.php', { token });
       if (response.data.success) {
         favorites.value = response.data.favorites;
-        // 同時更新本地快取
         localStorage.setItem('user_favorites', JSON.stringify(favorites.value));
       }
     } catch (err) {

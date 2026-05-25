@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import axios from 'axios'
 import {
@@ -26,58 +26,38 @@ const comments = ref([])
 const newComment = ref('')
 const userRating = ref(0)
 
-/*
-  API 預留區
-  之後後端完成後，可以直接調整這幾個 API 路徑與回傳欄位。
-*/
+// H7 — 用 AbortController 取消上一個請求，避免快速切換時舊回應蓋掉新資料
+let activeController = null
 
-const fetchToolDetail = async () => {
+const fetchToolDetail = async (signal) => {
   try {
-    const res = await axios.get(`/api/tool.php?id=${route.params.id}`)
+    const res = await axios.get(`/api/tool.php?id=${route.params.id}`, { signal })
     tool.value = res.data
   } catch (err) {
+    if (axios.isCancel?.(err) || err.name === 'CanceledError') return
     const fallbackTools = getFallbackTools()
     tools.value = fallbackTools
     tool.value = fallbackTools.find(item => String(item.id) === String(route.params.id)) || null
   }
 }
 
-const fetchAllTools = async () => {
+const fetchAllTools = async (signal) => {
   try {
-    const res = await axios.get('/api/tools.php')
+    const res = await axios.get('/api/tools.php', { signal })
     tools.value = res.data
   } catch (err) {
+    if (axios.isCancel?.(err) || err.name === 'CanceledError') return
     tools.value = getFallbackTools()
   }
 }
 
-const fetchComments = async () => {
+const fetchComments = async (signal) => {
   try {
-    const res = await axios.get(`/api/comments.php?tool_id=${route.params.id}`)
+    const res = await axios.get(`/api/comments.php?tool_id=${route.params.id}`, { signal })
     comments.value = res.data
   } catch (err) {
-    comments.value = [
-      {
-        user: '小明',
-        content: '這個工具對寫報告很有幫助，整理資料速度快很多。',
-        rating: 5
-      },
-      {
-        user: 'Amy',
-        content: '介面簡單好用，適合新手入門。',
-        rating: 5
-      },
-      {
-        user: 'Chris',
-        content: '功能完整，對工作流程有明顯幫助。',
-        rating: 4
-      },
-      {
-        user: '王同學',
-        content: '用來整理筆記跟摘要資料很方便。',
-        rating: 5
-      }
-    ]
+    if (axios.isCancel?.(err) || err.name === 'CanceledError') return
+    comments.value = []
   }
 }
 
@@ -160,29 +140,44 @@ const recommendedTools = computed(() => {
     .slice(0, 3)
 })
 
-onMounted(async () => {
-  loading.value = true
+const reloadAll = async () => {
+  // 取消上一輪還在跑的請求
+  if (activeController) activeController.abort()
+  activeController = new AbortController()
+  const signal = activeController.signal
 
+  loading.value = true
   try {
     await Promise.all([
-      fetchAllTools(),
-      fetchToolDetail(),
-      fetchComments()
+      fetchAllTools(signal),
+      fetchToolDetail(signal),
+      fetchComments(signal)
     ])
   } catch (err) {
-    error.value = '資料載入失敗，請稍後再試。'
+    if (!axios.isCancel?.(err) && err.name !== 'CanceledError') {
+      error.value = '資料載入失敗，請稍後再試。'
+    }
   } finally {
-    loading.value = false
+    if (!signal.aborted) loading.value = false
   }
+}
+
+onMounted(reloadAll)
+
+// 切換到不同工具時，先 abort 舊請求再發新請求
+watch(() => route.params.id, (newId) => {
+  if (!newId) return
+  if (activeController) activeController.abort()
+  activeController = new AbortController()
+  const signal = activeController.signal
+
+  fetchToolDetail(signal)
+  fetchComments(signal)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 })
 
-// 當從一個工具詳情跳轉到另一個工具詳情時，重新抓取資料
-watch(() => route.params.id, (newId) => {
-  if (newId) {
-    fetchToolDetail()
-    fetchComments()
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+onBeforeUnmount(() => {
+  if (activeController) activeController.abort()
 })
 
 const getEmbedUrl = (url) => {

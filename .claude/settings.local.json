@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"c:\\\\xampp\\\\htdocs\\\\AiTool\\\\node_modules\" | Select-Object Name | Where-Object { $_.Name -match \"mark|vue-router|axios|lucide\" })",
+      "Read(//c/xampp/htdocs/AiTool/**)",
+      "Bash(npm install *)"
+    ]
+  }
+}

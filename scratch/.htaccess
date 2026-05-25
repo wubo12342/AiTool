@@ -1,0 +1,2 @@
+# 開發用暫存檔，禁止 HTTP 存取
+Require all denied

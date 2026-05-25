@@ -27,7 +27,8 @@ const router = createRouter({
     },
     {
       path: '/tools',
-      component: ToolsList
+      component: ToolsList,
+      alias: '/search'
     },
     {
       path: '/compare',

@@ -1,0 +1,9 @@
+# 阻擋直接從瀏覽器讀取 .env / .env.example
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+# 阻擋專案開發筆記
+<FilesMatch "\.(txt|md)$">
+    Require all denied
+</FilesMatch>

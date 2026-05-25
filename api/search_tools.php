@@ -1,33 +1,30 @@
 <?php
 // api/search_tools.php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+require_once __DIR__ . '/cors.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/response_helper.php';
 
-require_once 'db.php';
-
-$q = isset($_GET['q']) ? $_GET['q'] : '';
-$categories = isset($_GET['categories']) && $_GET['categories'] !== '' ? explode(',', $_GET['categories']) : [];
-$prices = isset($_GET['prices']) && $_GET['prices'] !== '' ? explode(',', $_GET['prices']) : [];
+$q = $_GET['q'] ?? '';
+$categories = (isset($_GET['categories']) && $_GET['categories'] !== '') ? explode(',', $_GET['categories']) : [];
+$prices = (isset($_GET['prices']) && $_GET['prices'] !== '') ? explode(',', $_GET['prices']) : [];
 $minRating = isset($_GET['rating']) ? (float)$_GET['rating'] : 0;
 $sort = $_GET['sort'] ?? 'rating';
 
-// 分頁參數
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$perPage = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 12;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$perPage = isset($_GET['per_page']) ? min(100, max(1, (int)$_GET['per_page'])) : 12;
 $offset = ($page - 1) * $perPage;
 
 try {
-    // 1. 基本查詢語句 (不含 LIMIT)
     $whereSql = " WHERE 1=1";
     $params = [];
-    
+
     if ($q !== '') {
         $whereSql .= " AND (t.name LIKE ? OR t.description LIKE ? OR c.name LIKE ?)";
         $params[] = "%$q%";
         $params[] = "%$q%";
         $params[] = "%$q%";
     }
-    
+
     if (!empty($categories)) {
         $placeholders = str_repeat('?,', count($categories) - 1) . '?';
         $whereSql .= " AND t.CID IN ($placeholders)";
@@ -35,17 +32,16 @@ try {
             $params[] = $catId;
         }
     }
-    
-    // 評分篩選 (HAVING 比較難算總數，我們改用子查詢或 WHERE)
+
     $havingSql = "";
     if ($minRating > 0) {
         $havingSql = " HAVING rating >= ?";
     }
 
-    // 2. 獲取總筆數 (為了分頁計算)
+    // 計算總筆數
     $countSql = "
         SELECT COUNT(*) FROM (
-            SELECT 
+            SELECT
                 t.tool_ID,
                 COALESCE((SELECT AVG(stars) FROM tool_reviews WHERE tool_ID = t.tool_ID), 0) as rating
             FROM ai_tools t
@@ -54,25 +50,25 @@ try {
             $havingSql
         ) as total_count
     ";
-    
+
     $countParams = $params;
     if ($minRating > 0) $countParams[] = $minRating;
-    
+
     $countStmt = $pdo->prepare($countSql);
     $countStmt->execute($countParams);
     $totalItems = (int)$countStmt->fetchColumn();
-    $totalPages = ceil($totalItems / $perPage);
+    $totalPages = max(1, (int)ceil($totalItems / $perPage));
 
-    // 3. 獲取當前頁面的工具
     $orderClause = " ORDER BY rating DESC";
     if ($sort === 'reviews') $orderClause = " ORDER BY review_count DESC";
-    
+
+    // S6 — LIMIT/OFFSET 改用 bindValue
     $sql = "
-        SELECT 
-            t.tool_ID as id, 
-            t.name, 
-            t.description, 
-            t.logo_url as logoUrl, 
+        SELECT
+            t.tool_ID as id,
+            t.name,
+            t.description,
+            t.logo_url as logoUrl,
             t.website_url,
             t.pricing_plans,
             c.name as category_name,
@@ -83,24 +79,29 @@ try {
         $whereSql
         $havingSql
         $orderClause, id DESC
-        LIMIT $perPage OFFSET $offset
+        LIMIT :limit OFFSET :offset
     ";
-    
+
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($countParams);
+    foreach ($countParams as $i => $val) {
+        $stmt->bindValue($i + 1, $val);
+    }
+    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
     $tools = $stmt->fetchAll();
 
     foreach ($tools as &$tool) {
         $tool['id'] = (int)$tool['id'];
         $tool['rating'] = round((float)$tool['rating'], 1);
-        $tool['tags'] = [$tool['category_name']];
-        
+        $tool['tags'] = $tool['category_name'] ? [$tool['category_name']] : [];
+
         $pricing = json_decode($tool['pricing_plans'], true);
         $tool['price_status'] = $pricing['status'] ?? 'Free';
         $tool['tags'][] = $tool['price_status'];
-        
+
         if (!$tool['logoUrl']) {
-            $tool['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . $tool['name'];
+            $tool['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . urlencode($tool['name']);
         }
     }
 
@@ -114,7 +115,6 @@ try {
         ]
     ]);
 
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+} catch (Throwable $e) {
+    send_server_error($e);
 }

@@ -1,31 +1,36 @@
 <?php
-header('Content-Type: application/json');
-require_once 'config.php';
-require_once 'tools_handler.php';
-require_once 'jwt_helper.php';
+require_once __DIR__ . '/cors.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/tools_handler.php';
+require_once __DIR__ . '/jwt_helper.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $user_messages = $input['messages'] ?? [];
 $token = $input['token'] ?? '';
 
-if (empty($user_messages)) {
-    echo json_encode(['error' => '請提供訊息內容']);
-    exit;
+// S2 — 強制認證：沒有 token / token 無效都不能呼叫 OpenAI
+$decoded = JWT::decode($token);
+if (!$decoded || !isset($decoded['uid'])) {
+    send_unauthorized('請先登入後再使用 AI 助理');
 }
 
-// 直接從資料庫獲取使用者偏好，不佔用 AI Tool 次數
+if (empty($user_messages)) {
+    send_bad_request('請提供訊息內容');
+}
+
+// 取得使用者偏好（system_prompt）
 $user_preference = '';
-if ($token) {
-    $decoded = JWT::decode($token);
-    if ($decoded && isset($decoded['uid'])) {
-        $db = getDB();
-        $stmt = $db->prepare("SELECT system_prompt FROM user WHERE UID = ?");
-        $stmt->execute([$decoded['uid']]);
-        $user = $stmt->fetch();
-        if ($user && !empty($user['system_prompt'])) {
-            $user_preference = "**目前使用者的個人偏好與背景**：\n" . $user['system_prompt'] . "\n\n";
-        }
+try {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT system_prompt FROM user WHERE UID = ?");
+    $stmt->execute([$decoded['uid']]);
+    $user = $stmt->fetch();
+    if ($user && !empty($user['system_prompt'])) {
+        $user_preference = "**目前使用者的個人偏好與背景**：\n" . $user['system_prompt'] . "\n\n";
     }
+} catch (Throwable $e) {
+    // 讀偏好失敗不致命，繼續對話
+    error_log('[chat_agent] 讀取偏好失敗: ' . $e->getMessage());
 }
 
 $tools = [
@@ -140,6 +145,15 @@ function callOpenAI($messages, $tools) {
 
 $response = callOpenAI($messages, $tools);
 
+// S3 — 嚴格白名單：只能呼叫這四個我們定義的 tool function
+// 避免 OpenAI 回應若被 prompt injection 操弄、回傳 phpinfo/system 之類的內建函式名稱
+const ALLOWED_TOOL_FUNCTIONS = [
+    'search_tools',
+    'get_community_insights',
+    'pricing_comparison_expert',
+    'trending_tools_retriever',
+];
+
 if (isset($response['choices'][0]['message']['tool_calls'])) {
     $tool_calls = $response['choices'][0]['message']['tool_calls'];
     $messages[] = $response['choices'][0]['message'];
@@ -147,10 +161,13 @@ if (isset($response['choices'][0]['message']['tool_calls'])) {
     foreach ($tool_calls as $tool_call) {
         $function_name = $tool_call['function']['name'];
         $arguments = json_decode($tool_call['function']['arguments'], true);
-        
+
         $observation = '';
-        if (is_callable($function_name)) {
+        if (in_array($function_name, ALLOWED_TOOL_FUNCTIONS, true) && is_callable($function_name)) {
             $observation = call_user_func($function_name, $arguments);
+        } else {
+            error_log("[chat_agent] 嘗試呼叫非白名單函式: $function_name");
+            $observation = ['error' => '不允許的函式'];
         }
 
         $messages[] = [
@@ -161,7 +178,7 @@ if (isset($response['choices'][0]['message']['tool_calls'])) {
     }
 
     $final_response = callOpenAI($messages, $tools);
-    echo json_encode(['content' => $final_response['choices'][0]['message']['content']]);
+    echo json_encode(['content' => $final_response['choices'][0]['message']['content'] ?? '抱歉，AI 暫時無法回答。']);
 } else {
-    echo json_encode(['content' => $response['choices'][0]['message']['content']]);
+    echo json_encode(['content' => $response['choices'][0]['message']['content'] ?? '抱歉，AI 暫時無法回答。']);
 }

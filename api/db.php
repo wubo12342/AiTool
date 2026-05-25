@@ -1,12 +1,12 @@
 <?php
-// api/db.php
-require_once 'env_loader.php'; // 確保環境變數有被載入
+// api/db.php — 提供 $pdo 全域連線，與 config.php 共用同一份環境變數預設值
+require_once __DIR__ . '/env_loader.php';
+require_once __DIR__ . '/response_helper.php';
 
-// 優先從環境變數讀取，若無則使用預設值 (與 Docker Compose 一致)
-$host = getenv('DB_HOST') ?: 'db';
+$host = getenv('DB_HOST') ?: 'localhost';
 $db   = getenv('DB_NAME') ?: 'ai_tools';
 $user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : 'root';
+$pass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -19,9 +19,6 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    error_log("資料庫連線失敗: " . $e->getMessage()); 
-    http_response_code(500);
-    header('Content-Type: application/json');
-    echo json_encode(['error' => '資料庫連線失敗: ' . $e->getMessage()]);
-    exit;
+    // 真正錯誤寫 log，前端只看到通用訊息
+    send_server_error($e, '資料庫連線失敗');
 }

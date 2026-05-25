@@ -1,0 +1,9 @@
+# 封鎖除錯端點
+<Files "test_db.php">
+    Require all denied
+</Files>
+
+# 防止 .env 透過 webroot 被直接讀
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>

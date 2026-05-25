@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { Bot, X, Send, Sparkles, User, RefreshCw, MinusSquare, Settings, Check, ArrowLeft } from 'lucide-vue-next'
 import axios from 'axios'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -164,6 +165,14 @@ marked.setOptions({
   breaks: true,
   gfm: true
 })
+
+// H13 — 用 DOMPurify 把 marked 產出的 HTML 過濾過，避免 v-html XSS
+const renderSafeMarkdown = (text) => {
+  const rawHtml = marked.parse(text ?? '')
+  return DOMPurify.sanitize(rawHtml, {
+    ADD_ATTR: ['target', 'rel']
+  })
+}
 </script>
 
 <template>
@@ -271,10 +280,10 @@ marked.setOptions({
                 class="max-w-[85%] p-4 rounded-3xl shadow-sm text-sm"
               >
                 <!-- Markdown Rendering Content -->
-                <div 
-                  v-if="msg.role === 'ai'" 
+                <div
+                  v-if="msg.role === 'ai'"
                   class="markdown-content prose prose-sm max-w-none"
-                  v-html="marked(msg.content)"
+                  v-html="renderSafeMarkdown(msg.content)"
                 ></div>
                 <div v-else class="whitespace-pre-wrap">{{ msg.content }}</div>
                 

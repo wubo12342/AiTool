@@ -1,6 +1,5 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import NeuralTechBackground from './NeuralTechBackground.vue'
 import {
   Search,
   Zap,
@@ -88,8 +87,6 @@ onMounted(() => {
 
 <template>
   <div class="relative overflow-hidden animate-in fade-in duration-500 text-slate-900">
-    <NeuralTechBackground />
-
     <div class="relative z-10">
       <!-- Hero Section -->
       <section class="relative py-24 overflow-hidden bg-slate-900 text-white">

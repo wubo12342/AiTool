@@ -1,30 +1,28 @@
 <?php
 // api/tool.php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-
-require_once 'db.php';
+require_once __DIR__ . '/cors.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/response_helper.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($id <= 0) {
-    http_response_code(400);
-    echo json_encode(['error' => '無效的 ID']);
-    exit;
+    send_bad_request('無效的 ID');
 }
 
 try {
     $query = "
-        SELECT 
-            t.tool_ID as id, 
-            t.name, 
-            t.description, 
-            t.logo_url as logoUrl, 
+        SELECT
+            t.tool_ID as id,
+            t.CID as cid,
+            t.name,
+            t.description,
+            t.logo_url as logoUrl,
             t.website_url as officialUrl,
             t.video_url,
             t.pricing_plans,
             c.name as category_name,
-            COALESCE((SELECT AVG(stars) FROM tool_reviews WHERE tool_ID = t.tool_ID), 4.5) as rating
+            COALESCE((SELECT AVG(stars) FROM tool_reviews WHERE tool_ID = t.tool_ID), 0) as rating
         FROM ai_tools t
         LEFT JOIN categories c ON t.CID = c.CID
         WHERE t.tool_ID = :id
@@ -34,36 +32,53 @@ try {
     $stmt->execute(['id' => $id]);
     $tool = $stmt->fetch();
 
-    if ($tool) {
-        $tool['id'] = (int)$tool['id'];
-        $tool['rating'] = round((float)$tool['rating'], 1);
-        $tool['tags'] = [$tool['category_name']]; // 暫時用分類當標籤
-
-        if (!$tool['logoUrl']) {
-            $tool['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . $tool['name'];
-        }
-
-        // 處理價格方案 JSON
-        $plansData = json_decode($tool['pricing_plans'], true);
-        $tool['plans'] = isset($plansData['plans']) ? $plansData['plans'] : [];
-
-        // 為了相容前端，將 plans 裡的 price 補上符號（如果需要的話）
-        foreach ($tool['plans'] as &$plan) {
-            if (is_numeric($plan['price']) && $plan['price'] != '0') {
-                $currency = isset($plansData['currency']) ? $plansData['currency'] : '$';
-                $plan['price'] = $currency . $plan['price'] . (isset($plansData['status']) && $plansData['status'] == 'Subscription' ? ' / 月' : '');
-            } else if ($plan['price'] == '0') {
-                $plan['price'] = '免費';
-            }
-        }
-
-        unset($tool['pricing_plans']);
-        echo json_encode($tool);
-    } else {
-        http_response_code(404);
-        echo json_encode(['error' => '找不到工具']);
+    if (!$tool) {
+        send_not_found('找不到工具');
     }
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+
+    $tool['id'] = (int)$tool['id'];
+    $tool['cid'] = (int)$tool['cid'];
+    $tool['rating'] = round((float)$tool['rating'], 1);
+    $tool['tags'] = $tool['category_name'] ? [$tool['category_name']] : [];
+
+    if (!$tool['logoUrl']) {
+        $tool['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . urlencode($tool['name']);
+    }
+
+    $plansData = json_decode($tool['pricing_plans'], true);
+    $tool['plans'] = isset($plansData['plans']) ? $plansData['plans'] : [];
+    $tool['pricing_status'] = $plansData['status'] ?? null;
+    $tool['pricing_last_check'] = $plansData['last_check'] ?? null;
+    $tool['pricing_currency'] = $plansData['currency'] ?? 'USD';
+
+    $hasFree = false;
+    $lowestPaid = null;
+    foreach ($tool['plans'] as &$plan) {
+        if (!isset($plan['price'])) {
+            $plan['price_raw'] = null;
+            $plan['price'] = '—';
+            continue;
+        }
+        $plan['price_raw'] = is_numeric($plan['price']) ? (float)$plan['price'] : null;
+        if (is_numeric($plan['price']) && $plan['price'] != '0') {
+            $currency = $plansData['currency'] ?? '$';
+            $suffix = (isset($plansData['status']) && $plansData['status'] == 'Subscription') ? ' / 月' : '';
+            $plan['price'] = $currency . $plan['price'] . $suffix;
+            if ($lowestPaid === null || (float)$plan['price_raw'] < $lowestPaid) {
+                $lowestPaid = (float)$plan['price_raw'];
+            }
+        } else if ($plan['price'] == '0') {
+            $plan['price'] = '免費';
+            $hasFree = true;
+        }
+    }
+    unset($plan);
+    $tool['has_free_plan'] = $hasFree;
+    $tool['lowest_paid_price'] = $lowestPaid;
+
+    unset($tool['pricing_plans']);
+    echo json_encode($tool);
+
+} catch (Throwable $e) {
+    send_server_error($e);
 }
