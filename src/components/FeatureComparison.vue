@@ -229,7 +229,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-900 pb-20 pt-10">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 pb-20 pt-10">
 
     <!-- Video Modal -->
     <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100" leave-to-class="opacity-0">
@@ -244,21 +244,21 @@ onMounted(async () => {
     </Transition>
 
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div class="bg-white rounded-[3rem] shadow-2xl p-8 md:p-12 border border-slate-100">
+      <div class="bg-white dark:bg-slate-800 rounded-[3rem] shadow-2xl p-8 md:p-12 border border-slate-100 dark:border-slate-700">
 
         <!-- Header -->
         <div class="text-center mb-12">
-          <span class="inline-block px-4 py-1 rounded-full bg-teal-50 text-teal-600 font-bold text-sm mb-4">動態工具對比</span>
+          <span class="inline-block px-4 py-1 rounded-full bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 font-bold text-sm mb-4">動態工具對比</span>
           <h2 class="text-3xl font-bold">選取兩款 AI 工具進行比較</h2>
-          <p class="text-slate-500 mt-2">從我們的工具庫中挑選您感興趣的 AI 進行深度對比</p>
+          <p class="text-slate-500 dark:text-slate-400 mt-2">從我們的工具庫中挑選您感興趣的 AI 進行深度對比</p>
 
           <!-- Actions -->
           <div v-if="eitherSelected" class="mt-6 flex items-center justify-center gap-3">
-            <button @click="copyLink" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl border-none cursor-pointer transition-all">
+            <button @click="copyLink" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm rounded-xl border-none cursor-pointer transition-all">
               <Copy class="w-4 h-4" />
               {{ copySuccess ? '已複製！' : '複製比較連結' }}
             </button>
-            <button @click="resetAll" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-700 font-bold text-sm rounded-xl border-none cursor-pointer transition-all">
+            <button @click="resetAll" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 text-slate-700 dark:text-slate-200 font-bold text-sm rounded-xl border-none cursor-pointer transition-all">
               <RotateCcw class="w-4 h-4" />
               清除全部
             </button>
@@ -267,7 +267,7 @@ onMounted(async () => {
 
         <!-- Tool Selectors -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative">
-          <div class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-slate-100 border-4 border-white items-center justify-center text-slate-400 z-10 shadow-sm">
+          <div class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 border-4 border-white dark:border-slate-800 items-center justify-center text-slate-400 z-10 shadow-sm">
             <ArrowLeftRight class="w-6 h-6" />
           </div>
 
@@ -277,38 +277,38 @@ onMounted(async () => {
             <!-- Empty Slot -->
             <div
               v-if="!tool"
-              class="group min-h-[400px] rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-6 hover:border-teal-400 hover:bg-teal-50/30 transition-all cursor-pointer"
+              class="group min-h-[400px] rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-600 flex flex-col items-center justify-center gap-6 hover:border-teal-400 hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-all cursor-pointer"
               @click="openSearch(index)"
             >
-              <div class="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-teal-400 group-hover:scale-110 transition-all">
+              <div class="w-20 h-20 rounded-2xl bg-slate-50 dark:bg-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-500 group-hover:text-teal-400 group-hover:scale-110 transition-all">
                 <Search class="w-10 h-10" />
               </div>
               <div class="text-center">
-                <h4 class="font-bold text-slate-400 group-hover:text-teal-600">選取第 {{ index + 1 }} 款工具</h4>
-                <p class="text-slate-300 text-sm mt-1">搜尋名稱或分類...</p>
+                <h4 class="font-bold text-slate-400 dark:text-slate-500 group-hover:text-teal-600">選取第 {{ index + 1 }} 款工具</h4>
+                <p class="text-slate-300 dark:text-slate-600 text-sm mt-1">搜尋名稱或分類...</p>
               </div>
             </div>
 
             <!-- Selected Tool Card -->
-            <div v-else class="min-h-[400px] rounded-3xl bg-slate-50 p-8 flex flex-col animate-in zoom-in-95 duration-300 group">
+            <div v-else class="min-h-[400px] rounded-3xl bg-slate-50 dark:bg-slate-700 p-8 flex flex-col animate-in zoom-in-95 duration-300 group">
               <div class="flex justify-end mb-2">
                 <button
                   @click="removeTool(index)"
-                  class="w-9 h-9 rounded-full bg-white text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 border-none cursor-pointer"
+                  class="w-9 h-9 rounded-full bg-white dark:bg-slate-600 text-slate-300 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 border-none cursor-pointer"
                 >
                   <Trash2 class="w-4 h-4" />
                 </button>
               </div>
 
               <div class="flex flex-col items-center text-center mb-6">
-                <div class="w-24 h-24 rounded-3xl bg-white p-4 shadow-xl mb-6 relative">
+                <div class="w-24 h-24 rounded-3xl bg-white dark:bg-slate-600 p-4 shadow-xl mb-6 relative">
                   <img :src="tool.logoUrl" class="w-full h-full object-contain" alt="logo">
                   <div class="absolute -bottom-2 -right-2 bg-teal-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
                     <Check class="w-4 h-4" />
                   </div>
                 </div>
-                <h3 class="text-2xl font-bold text-slate-900">{{ tool.name }}</h3>
-                <div class="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-white rounded-full text-slate-500 text-sm font-medium shadow-sm">
+                <h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ tool.name }}</h3>
+                <div class="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-white dark:bg-slate-600 rounded-full text-slate-500 dark:text-slate-300 text-sm font-medium shadow-sm">
                   <Star class="w-4 h-4 text-amber-400 fill-amber-400" />
                   <span>{{ tool.rating }}</span>
                   <span class="mx-1 text-slate-200">|</span>
@@ -316,16 +316,16 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <p class="text-slate-500 text-sm line-clamp-3 text-center px-2 mb-6">{{ tool.description }}</p>
+              <p class="text-slate-500 dark:text-slate-300 text-sm line-clamp-3 text-center px-2 mb-6">{{ tool.description }}</p>
 
               <div class="flex gap-2 flex-wrap justify-center mt-auto">
-                <a :href="tool.officialUrl" target="_blank" class="flex items-center gap-1.5 px-4 py-2.5 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all no-underline text-sm">
+                <a :href="tool.officialUrl" target="_blank" class="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-500 transition-all no-underline text-sm">
                   <ExternalLink class="w-4 h-4" />官方網站
                 </a>
-                <button v-if="tool.video_url" @click="openVideo(tool.video_url)" class="flex items-center gap-1.5 px-4 py-2.5 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all border-none cursor-pointer text-sm">
+                <button v-if="tool.video_url" @click="openVideo(tool.video_url)" class="flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-500 transition-all border-none cursor-pointer text-sm">
                   <Play class="w-4 h-4 text-red-500" />介紹影片
                 </button>
-                <button @click="toggleFavorite(tool)" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-pink-50 font-bold transition-all border-none cursor-pointer text-sm" :class="isFavorited(tool.id) ? 'text-pink-500' : 'text-slate-400'">
+                <button @click="toggleFavorite(tool)" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-600 border border-slate-200 dark:border-slate-500 hover:bg-pink-50 dark:hover:bg-pink-900/20 font-bold transition-all border-none cursor-pointer text-sm" :class="isFavorited(tool.id) ? 'text-pink-500' : 'text-slate-400 dark:text-slate-300'">
                   <Heart class="w-4 h-4" :class="isFavorited(tool.id) ? 'fill-pink-500' : ''" />{{ isFavorited(tool.id) ? '已收藏' : '收藏' }}
                 </button>
                 <button @click="openSearch(index)" class="px-4 py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-all border-none cursor-pointer text-sm">
@@ -335,12 +335,12 @@ onMounted(async () => {
             </div>
 
             <!-- Search Overlay -->
-            <div v-if="activeSearchIndex === index" class="absolute inset-0 bg-white z-20 p-6 flex flex-col rounded-3xl shadow-xl" @click.stop>
+            <div v-if="activeSearchIndex === index" class="absolute inset-0 bg-white dark:bg-slate-800 z-20 p-6 flex flex-col rounded-3xl shadow-xl" @click.stop>
 
               <!-- ── Step 1：Slot 0 選類別 ── -->
               <template v-if="index === 0 && searchStep === 'category'">
                 <div class="flex items-center justify-between mb-5">
-                  <h4 class="font-bold text-slate-800">選擇工具類別</h4>
+                  <h4 class="font-bold text-slate-800 dark:text-slate-100">選擇工具類別</h4>
                   <button @click="activeSearchIndex = null" class="text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer text-sm font-medium">取消</button>
                 </div>
                 <div class="flex-grow overflow-y-auto custom-scrollbar">
@@ -349,12 +349,12 @@ onMounted(async () => {
                       v-for="cat in categories"
                       :key="cat.id"
                       @click="pickCategory(cat)"
-                      class="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 hover:border-teal-300 hover:bg-teal-50 transition-all text-left cursor-pointer bg-slate-50 group"
+                      class="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-600 hover:border-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all text-left cursor-pointer bg-slate-50 dark:bg-slate-700 group"
                     >
-                      <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-all">
+                      <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-600 flex items-center justify-center shrink-0 shadow-sm group-hover:shadow-md transition-all">
                         <LayoutGrid class="w-4 h-4 text-teal-500" />
                       </div>
-                      <span class="text-sm font-bold text-slate-700 group-hover:text-teal-700 leading-tight">{{ cat.name }}</span>
+                      <span class="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-teal-700 leading-tight">{{ cat.name }}</span>
                     </button>
                   </div>
                 </div>
@@ -377,7 +377,7 @@ onMounted(async () => {
                       v-model="searchQuery"
                       type="text"
                       placeholder="搜尋工具名稱..."
-                      class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 text-sm"
+                      class="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 border-none rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 text-sm"
                       autofocus
                     >
                   </div>
@@ -448,11 +448,11 @@ onMounted(async () => {
             <span v-if="!bothSelected" class="text-sm font-normal text-slate-400 ml-2">（選取第二款工具以啟用勝者比較）</span>
           </h3>
 
-          <div class="overflow-hidden bg-slate-50/50 rounded-3xl border border-slate-100">
+          <div class="overflow-hidden bg-slate-50/50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-700">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-slate-100 bg-slate-50">
-                  <th class="p-6 text-sm font-bold text-slate-500 w-1/4">比較項目</th>
+                <tr class="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                  <th class="p-6 text-sm font-bold text-slate-500 dark:text-slate-400 w-1/4">比較項目</th>
                   <th class="p-6 text-center text-sm font-bold" :class="selectedTools[0] ? 'text-teal-700' : 'text-slate-400'">
                     {{ selectedTools[0]?.name ?? '工具 1' }}
                   </th>
@@ -461,11 +461,11 @@ onMounted(async () => {
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
 
                 <!-- Rating -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">社群評分</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">社群評分</td>
                   <td class="p-6 text-center" :class="{ 'bg-green-50': isWinner('rating', 0) }">
                     <div v-if="selectedTools[0]" class="flex items-center justify-center gap-1.5">
                       <div class="flex items-center gap-1 text-amber-600 font-bold text-lg">
@@ -489,8 +489,8 @@ onMounted(async () => {
                 </tr>
 
                 <!-- Category -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">應用分類</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">應用分類</td>
                   <td class="p-6 text-center">
                     <span v-if="selectedTools[0]" class="inline-block px-4 py-1.5 rounded-full bg-teal-50 text-teal-700 font-bold text-sm border border-teal-100">
                       {{ selectedTools[0].category_name }}
@@ -506,8 +506,8 @@ onMounted(async () => {
                 </tr>
 
                 <!-- Pricing Status -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">計費模式</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">計費模式</td>
                   <td class="p-6 text-center" :class="{ 'bg-green-50': isWinner('pricingStatus', 0) }">
                     <div v-if="selectedTools[0]" class="flex items-center justify-center gap-1.5">
                       <span class="inline-block px-3 py-1 rounded-full text-xs font-bold"
@@ -539,8 +539,8 @@ onMounted(async () => {
                 </tr>
 
                 <!-- Free Plan -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">免費方案</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">免費方案</td>
                   <td class="p-6 text-center" :class="{ 'bg-green-50': isWinner('free', 0) }">
                     <div v-if="selectedTools[0]" class="flex items-center justify-center gap-1.5">
                       <span v-if="selectedTools[0].has_free_plan" class="inline-flex items-center gap-1 text-green-600 font-bold">
@@ -564,11 +564,11 @@ onMounted(async () => {
                 </tr>
 
                 <!-- Lowest Paid Price -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">最低月費</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">最低月費</td>
                   <td class="p-6 text-center" :class="{ 'bg-green-50': isWinner('lowestPaid', 0) }">
                     <div v-if="selectedTools[0]" class="flex items-center justify-center gap-1.5">
-                      <span class="font-bold text-slate-800">
+                      <span class="font-bold text-slate-800 dark:text-slate-100">
                         {{ selectedTools[0].lowest_paid_price != null ? `$${selectedTools[0].lowest_paid_price} / 月` : '—' }}
                       </span>
                       <span v-if="isWinner('lowestPaid', 0)" class="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">勝出</span>
@@ -577,7 +577,7 @@ onMounted(async () => {
                   </td>
                   <td class="p-6 text-center" :class="{ 'bg-green-50': isWinner('lowestPaid', 1) }">
                     <div v-if="selectedTools[1]" class="flex items-center justify-center gap-1.5">
-                      <span class="font-bold text-slate-800">
+                      <span class="font-bold text-slate-800 dark:text-slate-100">
                         {{ selectedTools[1].lowest_paid_price != null ? `$${selectedTools[1].lowest_paid_price} / 月` : '—' }}
                       </span>
                       <span v-if="isWinner('lowestPaid', 1)" class="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">勝出</span>
@@ -606,9 +606,9 @@ onMounted(async () => {
                       </button>
                       <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 -translate-y-2" enter-to-class="opacity-100 translate-y-0">
                         <div v-if="expandedPlans[0]" class="mt-4 space-y-3">
-                          <div v-for="plan in selectedTools[0].plans" :key="plan.name" class="bg-white rounded-2xl p-4 border border-slate-100 text-left">
+                          <div v-for="plan in selectedTools[0].plans" :key="plan.name" class="bg-white dark:bg-slate-700 rounded-2xl p-4 border border-slate-100 dark:border-slate-600 text-left">
                             <div class="flex items-center justify-between mb-2">
-                              <span class="font-bold text-sm text-slate-900">{{ plan.name }}</span>
+                              <span class="font-bold text-sm text-slate-900 dark:text-slate-100">{{ plan.name }}</span>
                               <span class="font-bold text-sm text-teal-600">{{ plan.price }}</span>
                             </div>
                             <p v-if="plan.description" class="text-xs text-slate-500 mb-2">{{ plan.description }}</p>
@@ -642,9 +642,9 @@ onMounted(async () => {
                       </button>
                       <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 -translate-y-2" enter-to-class="opacity-100 translate-y-0">
                         <div v-if="expandedPlans[1]" class="mt-4 space-y-3">
-                          <div v-for="plan in selectedTools[1].plans" :key="plan.name" class="bg-white rounded-2xl p-4 border border-slate-100 text-left">
+                          <div v-for="plan in selectedTools[1].plans" :key="plan.name" class="bg-white dark:bg-slate-700 rounded-2xl p-4 border border-slate-100 dark:border-slate-600 text-left">
                             <div class="flex items-center justify-between mb-2">
-                              <span class="font-bold text-sm text-slate-900">{{ plan.name }}</span>
+                              <span class="font-bold text-sm text-slate-900 dark:text-slate-100">{{ plan.name }}</span>
                               <span class="font-bold text-sm text-purple-600">{{ plan.price }}</span>
                             </div>
                             <p v-if="plan.description" class="text-xs text-slate-500 mb-2">{{ plan.description }}</p>
@@ -664,8 +664,8 @@ onMounted(async () => {
                 </tr>
 
                 <!-- Video -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">介紹影片</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">介紹影片</td>
                   <td class="p-6 text-center">
                     <button v-if="selectedTools[0]?.video_url" @click="openVideo(selectedTools[0].video_url)" class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 font-bold text-sm rounded-xl border-none cursor-pointer hover:bg-red-100 transition-all">
                       <Play class="w-4 h-4" /> 觀看
@@ -683,8 +683,8 @@ onMounted(async () => {
                 </tr>
 
                 <!-- Data Last Check -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">資料更新時間</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">資料更新時間</td>
                   <td class="p-6 text-center" :class="{ 'bg-green-50': isWinner('lastCheck', 0) }">
                     <div v-if="selectedTools[0]" class="flex items-center justify-center gap-1.5">
                       <span class="text-sm text-slate-600">{{ selectedTools[0].pricing_last_check ?? '—' }}</span>
@@ -702,8 +702,8 @@ onMounted(async () => {
                 </tr>
 
                 <!-- Official Website -->
-                <tr class="hover:bg-white transition-colors">
-                  <td class="p-6 text-sm font-bold text-slate-600">官方網站</td>
+                <tr class="hover:bg-white dark:hover:bg-slate-700 transition-colors">
+                  <td class="p-6 text-sm font-bold text-slate-600 dark:text-slate-300">官方網站</td>
                   <td class="p-6 text-center">
                     <a v-if="selectedTools[0]" :href="selectedTools[0].officialUrl" target="_blank" class="text-teal-700 font-bold hover:underline">前往官方網站</a>
                     <span v-else class="text-slate-400">—</span>

@@ -73,29 +73,29 @@ const handleDeleteReview = async (id) => {
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-in fade-in duration-500">
     <div class="flex flex-col md:flex-row gap-8">
-      
+
       <!-- Sidebar Navigation -->
       <aside class="w-full md:w-64 flex-shrink-0">
-        <div class="glass-card overflow-hidden rounded-3xl sticky top-24 shadow-xl border border-white/20">
-          <div class="p-8 bg-gradient-to-br from-primary/10 to-secondary/10 border-b border-white/20">
-            <div class="w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 mx-auto text-primary text-3xl font-bold">
+        <div class="glass-card dark:bg-slate-800/70 dark:border-slate-700 overflow-hidden rounded-3xl sticky top-24 shadow-xl border border-white/20">
+          <div class="p-8 bg-gradient-to-br from-primary/10 to-secondary/10 border-b border-white/20 dark:border-slate-700">
+            <div class="w-20 h-20 rounded-2xl bg-white dark:bg-slate-700 shadow-lg flex items-center justify-center mb-4 mx-auto text-primary text-3xl font-bold">
               {{ username.charAt(0).toUpperCase() }}
             </div>
-            <h2 class="text-xl font-bold text-center text-slate-800">{{ username }}</h2>
-            <p class="text-center text-slate-500 text-xs mt-1">專業 AI 探索者</p>
+            <h2 class="text-xl font-bold text-center text-slate-800 dark:text-slate-100">{{ username }}</h2>
+            <p class="text-center text-slate-500 dark:text-slate-400 text-xs mt-1">專業 AI 探索者</p>
           </div>
-          
+
           <nav class="p-2">
-            <button 
+            <button
               @click="activeTab = 'favorites'"
-              :class="activeTab === 'favorites' ? 'bg-primary text-white shadow-lg' : 'text-slate-600 hover:bg-slate-50'"
+              :class="activeTab === 'favorites' ? 'bg-primary text-white shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'"
               class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all font-bold mb-1 cursor-pointer border-none text-left"
             >
               <Bookmark class="w-5 h-5" /> 我的收藏
             </button>
-            <button 
+            <button
               @click="activeTab = 'reviews'"
-              :class="activeTab === 'reviews' ? 'bg-primary text-white shadow-lg' : 'text-slate-600 hover:bg-slate-50'"
+              :class="activeTab === 'reviews' ? 'bg-primary text-white shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'"
               class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all font-bold mb-1 cursor-pointer border-none text-left"
             >
               <MessageSquare class="w-5 h-5" /> 我的評論
@@ -110,7 +110,7 @@ const handleDeleteReview = async (id) => {
         <!-- 我的收藏 Tab -->
         <div v-if="activeTab === 'favorites'" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="flex items-center justify-between mb-8">
-            <h1 class="text-3xl font-bold text-slate-900">我的收藏</h1>
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">我的收藏</h1>
             <span class="px-4 py-1 bg-primary/10 text-primary rounded-full text-sm font-bold border border-primary/10">共 {{ favorites.length }} 款工具</span>
           </div>
           
@@ -125,12 +125,12 @@ const handleDeleteReview = async (id) => {
               @toggleFavorite="toggleFavorite(tool)"
             />
           </div>
-          <div v-else class="glass-card p-16 text-center rounded-[3rem] border-dashed border-2 border-slate-200 bg-transparent shadow-none">
-            <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+          <div v-else class="glass-card dark:bg-slate-800/30 dark:border-slate-700 p-16 text-center rounded-[3rem] border-dashed border-2 border-slate-200 bg-transparent shadow-none">
+            <div class="w-24 h-24 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
               <Bookmark class="w-12 h-12" />
             </div>
-            <h3 class="text-2xl font-bold text-slate-800 mb-2">尚無收藏</h3>
-            <p class="text-slate-500 mb-8 max-w-xs mx-auto">您還沒有收藏任何 AI 工具，快去首頁看看我們為您挑選的精選工具吧！</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">尚無收藏</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto">您還沒有收藏任何 AI 工具，快去首頁看看我們為您挑選的精選工具吧！</p>
             <RouterLink to="/" class="inline-block bg-primary text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all no-underline">
               探索精選工具
             </RouterLink>
@@ -140,18 +140,18 @@ const handleDeleteReview = async (id) => {
         <!-- 我的評論 Tab -->
         <div v-if="activeTab === 'reviews'" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="flex items-center justify-between mb-8">
-            <h1 class="text-3xl font-bold text-slate-900">我的評論</h1>
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">我的評論</h1>
           </div>
           
           <div v-if="reviews.length > 0" class="space-y-6">
-            <div v-for="review in reviews" :key="review.review_ID" class="glass-card p-8 rounded-[2.5rem] flex gap-8 hover:shadow-2xl transition-all border border-white/20">
-              <div class="w-20 h-20 rounded-3xl bg-white shadow-md flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-100">
+            <div v-for="review in reviews" :key="review.review_ID" class="glass-card dark:bg-slate-800/70 dark:border-slate-700 p-8 rounded-[2.5rem] flex gap-8 hover:shadow-2xl transition-all border border-white/20">
+              <div class="w-20 h-20 rounded-3xl bg-white dark:bg-slate-700 shadow-md flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-100 dark:border-slate-600">
                 <img :src="review.logoUrl" :alt="review.toolName" class="w-14 h-14 object-contain">
               </div>
               <div class="flex-grow">
                 <div class="flex justify-between items-start mb-4">
                   <div>
-                    <h3 class="font-bold text-xl text-slate-900">{{ review.toolName }}</h3>
+                    <h3 class="font-bold text-xl text-slate-900 dark:text-slate-100">{{ review.toolName }}</h3>
                     <div class="flex gap-1 text-orange-400 mt-2">
                       <Star v-for="i in 5" :key="i" class="w-4 h-4" :class="{ 'fill-current': i <= review.stars, 'text-slate-200': i > review.stars }" />
                     </div>
@@ -165,17 +165,17 @@ const handleDeleteReview = async (id) => {
                     </button>
                   </div>
                 </div>
-                <p class="text-slate-600 mb-4 leading-relaxed text-lg">{{ review.comment }}</p>
+                <p class="text-slate-600 dark:text-slate-300 mb-4 leading-relaxed text-lg">{{ review.comment }}</p>
                 <span class="text-sm font-medium text-slate-400">{{ review.date }}</span>
               </div>
             </div>
           </div>
-          <div v-else class="glass-card p-16 text-center rounded-[3rem] border-dashed border-2 border-slate-200 bg-transparent shadow-none">
-            <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+          <div v-else class="glass-card dark:bg-slate-800/30 dark:border-slate-700 p-16 text-center rounded-[3rem] border-dashed border-2 border-slate-200 bg-transparent shadow-none">
+            <div class="w-24 h-24 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
               <MessageSquare class="w-12 h-12" />
             </div>
-            <h3 class="text-2xl font-bold text-slate-800 mb-2">尚無評論</h3>
-            <p class="text-slate-500">快去為您使用過的工具留下評價，分享您的使用心得吧！</p>
+            <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">尚無評論</h3>
+            <p class="text-slate-500 dark:text-slate-400">快去為您使用過的工具留下評價，分享您的使用心得吧！</p>
           </div>
         </div>
 

@@ -321,7 +321,7 @@ const getFallbackTools = () => [
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 px-4 py-10 animate-in fade-in duration-500">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 px-4 py-10 animate-in fade-in duration-500">
     <div v-if="loading" class="max-w-7xl mx-auto py-32 text-center text-slate-400 font-bold">
       載入中...
     </div>
@@ -333,15 +333,15 @@ const getFallbackTools = () => [
     <div v-else-if="tool" class="max-w-7xl mx-auto">
       <RouterLink
         to="/"
-        class="mb-8 inline-flex items-center gap-2 text-slate-500 hover:text-primary font-bold no-underline transition-colors"
+        class="mb-8 inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-primary font-bold no-underline transition-colors"
       >
         <ArrowLeft class="w-5 h-5" />
         返回首頁
       </RouterLink>
 
-      <section class="glass-card p-8 md:p-10 mb-10 rounded-[2.5rem] border border-white shadow-xl bg-white/70 backdrop-blur-xl">
+      <section class="glass-card p-8 md:p-10 mb-10 rounded-[2.5rem] border border-white dark:border-slate-700 shadow-xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl">
         <div class="grid md:grid-cols-[180px_1fr] gap-10 items-center">
-          <div class="bg-white rounded-3xl shadow-lg p-8 flex items-center justify-center border border-slate-50">
+          <div class="bg-white dark:bg-slate-700 rounded-3xl shadow-lg p-8 flex items-center justify-center border border-slate-50 dark:border-slate-600">
             <img
               :src="tool.logoUrl"
               :alt="tool.name"
@@ -351,13 +351,13 @@ const getFallbackTools = () => [
 
           <div>
             <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-5">
-              <h1 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+              <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                 {{ tool.name }}
               </h1>
 
               <button
                 @click="toggleFavorite(tool)"
-                class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm hover:shadow-md border border-slate-200 bg-white cursor-pointer text-sm"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 cursor-pointer text-sm"
                 :class="isFavorited(tool.id) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'"
               >
                 <Heart class="w-4 h-4" :class="{ 'fill-current': isFavorited(tool.id) }" />
@@ -381,7 +381,7 @@ const getFallbackTools = () => [
               </span>
             </div>
 
-            <p class="text-slate-600 leading-relaxed text-lg font-medium max-w-3xl">
+            <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-lg font-medium max-w-3xl">
               {{ tool.description }}
             </p>
 
@@ -425,8 +425,8 @@ const getFallbackTools = () => [
             :key="plan.name"
             class="p-8 rounded-[2rem] hover:-translate-y-1 transition-all duration-300 border shadow-lg group"
             :class="index === 1
-              ? 'bg-white border-primary/20 shadow-primary/10'
-              : 'bg-white border-slate-100'"
+              ? 'bg-white dark:bg-slate-800 border-primary/20 shadow-primary/10'
+              : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'"
           >
             <div
               v-if="index === 1"
@@ -435,11 +435,11 @@ const getFallbackTools = () => [
               推薦方案
             </div>
 
-            <h3 class="text-lg font-bold text-slate-400 mb-2 group-hover:text-primary transition-colors">
+            <h3 class="text-lg font-bold text-slate-400 dark:text-slate-500 mb-2 group-hover:text-primary transition-colors">
               {{ plan.name }}
             </h3>
 
-            <p class="text-3xl font-bold text-slate-900 mb-6">
+            <p class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
               {{ plan.price }}
             </p>
 
@@ -447,7 +447,7 @@ const getFallbackTools = () => [
               <li
                 v-for="feature in plan.features"
                 :key="feature"
-                class="flex items-center gap-2.5 text-slate-500 font-medium text-sm"
+                class="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 font-medium text-sm"
               >
                 <CheckCircle2 class="w-4 h-4 text-cta flex-shrink-0" />
                 {{ feature }}
@@ -464,13 +464,13 @@ const getFallbackTools = () => [
           評價與社群討論
         </h2>
 
-        <div class="bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[500px]">
+        <div class="bg-white dark:bg-slate-800 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[500px]">
           <!-- Left Side: Rating Summary -->
-          <div class="lg:w-1/3 p-10 bg-slate-50/50 border-r border-slate-100">
-            <h3 class="text-xl font-bold text-slate-900 mb-8">整體評分</h3>
-            
+          <div class="lg:w-1/3 p-10 bg-slate-50/50 dark:bg-slate-900/50 border-r border-slate-100 dark:border-slate-700">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-8">整體評分</h3>
+
             <div class="flex items-center gap-6 mb-10">
-              <div class="text-6xl font-black text-slate-900 leading-none">
+              <div class="text-6xl font-black text-slate-900 dark:text-slate-100 leading-none">
                 {{ tool.rating }}
               </div>
               <div>
@@ -479,10 +479,10 @@ const getFallbackTools = () => [
                     v-for="n in 5"
                     :key="n"
                     class="w-5 h-5"
-                    :class="n <= Math.round(tool.rating) ? 'text-orange-400 fill-current' : 'text-slate-200'"
+                    :class="n <= Math.round(tool.rating) ? 'text-orange-400 fill-current' : 'text-slate-200 dark:text-slate-600'"
                   />
                 </div>
-                <p class="text-sm text-slate-500 font-medium">
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">
                   共 {{ comments.length }} 則社群評價
                 </p>
               </div>
@@ -491,22 +491,22 @@ const getFallbackTools = () => [
             <!-- Rating Breakdown -->
             <div class="space-y-4 mb-12">
               <div v-for="n in 5" :key="n" class="flex items-center gap-4 text-sm">
-                <span class="w-10 font-bold text-slate-500 text-right">{{ 6 - n }} 星</span>
-                <div class="flex-1 h-2.5 bg-slate-200/50 rounded-full overflow-hidden">
+                <span class="w-10 font-bold text-slate-500 dark:text-slate-400 text-right">{{ 6 - n }} 星</span>
+                <div class="flex-1 h-2.5 bg-slate-200/50 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-orange-400 transition-all duration-1000"
                     :style="{ width: getRatingPercent(6 - n) + '%' }"
                   ></div>
                 </div>
-                <span class="w-12 text-slate-400 font-medium">
+                <span class="w-12 text-slate-400 dark:text-slate-500 font-medium">
                   {{ getRatingCount(6 - n) }}
                 </span>
               </div>
             </div>
 
             <!-- Your Rating Action -->
-            <div class="pt-8 border-t border-slate-200/50">
-              <p class="font-bold text-slate-800 mb-4">
+            <div class="pt-8 border-t border-slate-200/50 dark:border-slate-700">
+              <p class="font-bold text-slate-800 dark:text-slate-200 mb-4">
                 您的評分
               </p>
               <div class="flex gap-2.5">
@@ -530,7 +530,7 @@ const getFallbackTools = () => [
 
           <!-- Right Side: Comment Feed -->
           <div class="lg:w-2/3 p-10 flex flex-col">
-            <h3 class="text-xl font-bold text-slate-900 mb-8">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-8">
               社群討論
             </h3>
 
@@ -540,7 +540,7 @@ const getFallbackTools = () => [
                 v-model="newComment"
                 type="text"
                 placeholder="分享您的使用心得或提問..."
-                class="flex-1 rounded-2xl border-2 border-slate-100 px-6 py-4 outline-none focus:border-primary/20 bg-slate-50/50 transition-all font-medium text-slate-700"
+                class="flex-1 rounded-2xl border-2 border-slate-100 dark:border-slate-600 px-6 py-4 outline-none focus:border-primary/20 bg-slate-50/50 dark:bg-slate-700 transition-all font-medium text-slate-700 dark:text-slate-200"
                 @keyup.enter="addComment"
               >
               <button
@@ -557,7 +557,7 @@ const getFallbackTools = () => [
               <div
                 v-for="(comment, index) in comments"
                 :key="index"
-                class="p-6 rounded-3xl border border-slate-50 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all duration-300 group"
+                class="p-6 rounded-3xl border border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-700 hover:shadow-md transition-all duration-300 group"
               >
                 <div class="flex items-center justify-between gap-3 mb-3">
                   <div class="flex items-center gap-3">
@@ -565,22 +565,22 @@ const getFallbackTools = () => [
                       {{ comment.user.charAt(0) }}
                     </div>
                     <div>
-                      <div class="font-bold text-slate-900 text-sm">{{ comment.user }}</div>
+                      <div class="font-bold text-slate-900 dark:text-slate-100 text-sm">{{ comment.user }}</div>
                       <div class="text-[10px] text-slate-400 uppercase tracking-tighter">{{ comment.date }}</div>
                     </div>
                   </div>
                   <div class="flex gap-0.5">
-                    <Star v-for="s in 5" :key="s" class="w-3 h-3" :class="s <= comment.rating ? 'text-orange-400 fill-current' : 'text-slate-200'" />
+                    <Star v-for="s in 5" :key="s" class="w-3 h-3" :class="s <= comment.rating ? 'text-orange-400 fill-current' : 'text-slate-200 dark:text-slate-600'" />
                   </div>
                 </div>
-                <p class="text-slate-600 text-sm leading-relaxed font-medium">
+                <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
                   {{ comment.content }}
                 </p>
               </div>
 
               <!-- Empty State -->
               <div v-if="comments.length === 0" class="py-20 text-center">
-                <Bot class="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                <Bot class="w-12 h-12 text-slate-200 dark:text-slate-600 mx-auto mb-4" />
                 <p class="text-slate-400 font-medium">目前尚無討論，成為第一個留言的人吧！</p>
               </div>
             </div>
@@ -605,10 +605,10 @@ const getFallbackTools = () => [
             v-for="item in recommendedTools"
             :key="item.id"
             :to="`/tool/${item.id}`"
-            class="group no-underline bg-white rounded-[2rem] p-6 border border-slate-100 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all"
+            class="group no-underline bg-white dark:bg-slate-800 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all"
           >
             <div class="flex items-start gap-4 mb-5">
-              <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
+              <div class="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-700 flex items-center justify-center border border-slate-100 dark:border-slate-600">
                 <img
                   :src="item.logoUrl"
                   :alt="item.name"
@@ -617,7 +617,7 @@ const getFallbackTools = () => [
               </div>
 
               <div class="flex-1">
-                <h3 class="text-lg font-bold text-slate-900 group-hover:text-primary transition-colors">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">
                   {{ item.name }}
                 </h3>
 
@@ -628,11 +628,11 @@ const getFallbackTools = () => [
               </div>
             </div>
 
-            <p class="text-sm text-slate-500 leading-6 line-clamp-2 mb-5">
+            <p class="text-sm text-slate-500 dark:text-slate-400 leading-6 line-clamp-2 mb-5">
               {{ item.description }}
             </p>
 
-            <div class="mt-6 pt-5 border-t border-slate-50 flex items-end justify-between gap-4">
+            <div class="mt-6 pt-5 border-t border-slate-50 dark:border-slate-700 flex items-end justify-between gap-4">
               <div class="flex flex-wrap gap-2">
                 <span
                   v-for="tag in item.tags"

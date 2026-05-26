@@ -86,7 +86,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative overflow-hidden animate-in fade-in duration-500 text-slate-900">
+  <div class="relative overflow-hidden animate-in fade-in duration-500 text-slate-900 dark:text-slate-100">
     <div class="relative z-10">
       <!-- Hero Section -->
       <section class="relative py-24 overflow-hidden bg-slate-900 text-white">
@@ -139,33 +139,33 @@ onMounted(() => {
       <!-- Stats / Features Quick Look -->
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-white/90 backdrop-blur p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100">
-            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-primary flex-shrink-0">
+          <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100 dark:border-slate-700">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-primary flex-shrink-0">
               <Zap class="w-6 h-6" />
             </div>
             <div>
-              <h3 class="font-bold text-slate-900 text-lg">快速發現</h3>
-              <p class="text-slate-500 text-sm">每日更新最前衛的 AI 應用。</p>
+              <h3 class="font-bold text-slate-900 dark:text-slate-100 text-lg">快速發現</h3>
+              <p class="text-slate-500 dark:text-slate-400 text-sm">每日更新最前衛的 AI 應用。</p>
             </div>
           </div>
 
-          <div class="bg-white/90 backdrop-blur p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100">
-            <div class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-cta flex-shrink-0">
+          <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100 dark:border-slate-700">
+            <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-cta flex-shrink-0">
               <ArrowLeftRight class="w-6 h-6" />
             </div>
             <div>
-              <h3 class="font-bold text-slate-900 text-lg">深度比較</h3>
-              <p class="text-slate-500 text-sm">直觀的功能與價格對比。</p>
+              <h3 class="font-bold text-slate-900 dark:text-slate-100 text-lg">深度比較</h3>
+              <p class="text-slate-500 dark:text-slate-400 text-sm">直觀的功能與價格對比。</p>
             </div>
           </div>
 
-          <div class="bg-white/90 backdrop-blur p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100">
-            <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+          <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur p-6 rounded-2xl shadow-xl flex items-center gap-4 hover:-translate-y-1 transition-transform border border-slate-100 dark:border-slate-700">
+            <div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center text-orange-500 flex-shrink-0">
               <Bookmark class="w-6 h-6" />
             </div>
             <div>
-              <h3 class="font-bold text-slate-900 text-lg">個人收藏</h3>
-              <p class="text-slate-500 text-sm">打造您的專屬 AI 工具箱。</p>
+              <h3 class="font-bold text-slate-900 dark:text-slate-100 text-lg">個人收藏</h3>
+              <p class="text-slate-500 dark:text-slate-400 text-sm">打造您的專屬 AI 工具箱。</p>
             </div>
           </div>
         </div>
@@ -175,15 +175,15 @@ onMounted(() => {
       <section id="tools-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
           <div>
-            <h2 class="text-3xl font-bold text-slate-900 mb-2">{{ sectionTitle }}</h2>
-            <p class="text-slate-500">當前社區評分最高與使用最廣泛的工具。</p>
+            <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ sectionTitle }}</h2>
+            <p class="text-slate-500 dark:text-slate-400">當前社區評分最高與使用最廣泛的工具。</p>
           </div>
 
           <div class="flex items-center gap-4 w-full md:w-auto">
-            <select 
-              v-model="currentSort" 
+            <select
+              v-model="currentSort"
               @change="handleSortChange"
-              class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
+              class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
             >
               <option value="rating">依評分高低排序</option>
               <option value="reviews">依留言數量排序</option>
@@ -222,53 +222,53 @@ onMounted(() => {
       </section>
 
       <!-- Category Entry Section -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200/50">
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200/50 dark:border-slate-700/50">
         <div class="text-center mb-16">
-          <h2 class="text-3xl font-bold text-slate-900">按分類探索</h2>
-          <p class="text-slate-500 mt-4">從文本生成到影片剪輯，我們已為您將 AI 精確分類。</p>
+          <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100">按分類探索</h2>
+          <p class="text-slate-500 dark:text-slate-400 mt-4">從文本生成到影片剪輯，我們已為您將 AI 精確分類。</p>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          <button @click="filterByCategory('1')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
-            <div class="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-primary mx-auto mb-4 group-hover:scale-110 transition-transform">
+          <button @click="filterByCategory('1')" class="glass-card dark:bg-slate-800/50 dark:border-slate-700 p-8 rounded-2xl hover:shadow-xl hover:bg-white dark:hover:bg-slate-700 hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
+            <div class="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-primary mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Type class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">文字生成</span>
+            <span class="font-bold text-slate-900 dark:text-slate-200 group-hover:text-primary">文字生成</span>
           </button>
 
-          <button @click="filterByCategory('2')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
-            <div class="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
+          <button @click="filterByCategory('2')" class="glass-card dark:bg-slate-800/50 dark:border-slate-700 p-8 rounded-2xl hover:shadow-xl hover:bg-white dark:hover:bg-slate-700 hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
+            <div class="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Palette class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">圖像生成</span>
+            <span class="font-bold text-slate-900 dark:text-slate-200 group-hover:text-primary">圖像生成</span>
           </button>
 
-          <button @click="filterByCategory('3')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
-            <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
+          <button @click="filterByCategory('3')" class="glass-card dark:bg-slate-800/50 dark:border-slate-700 p-8 rounded-2xl hover:shadow-xl hover:bg-white dark:hover:bg-slate-700 hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
+            <div class="w-16 h-16 rounded-2xl bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Video class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">影片製作</span>
+            <span class="font-bold text-slate-900 dark:text-slate-200 group-hover:text-primary">影片製作</span>
           </button>
 
-          <button @click="filterByCategory('4')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
-            <div class="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
+          <button @click="filterByCategory('4')" class="glass-card dark:bg-slate-800/50 dark:border-slate-700 p-8 rounded-2xl hover:shadow-xl hover:bg-white dark:hover:bg-slate-700 hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
+            <div class="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Code class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">程式開發</span>
+            <span class="font-bold text-slate-900 dark:text-slate-200 group-hover:text-primary">程式開發</span>
           </button>
 
-          <button @click="filterByCategory('5')" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
-            <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
+          <button @click="filterByCategory('5')" class="glass-card dark:bg-slate-800/50 dark:border-slate-700 p-8 rounded-2xl hover:shadow-xl hover:bg-white dark:hover:bg-slate-700 hover:text-primary transition-all text-center group no-underline border-none cursor-pointer w-full">
+            <div class="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Music class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">語音生成</span>
+            <span class="font-bold text-slate-900 dark:text-slate-200 group-hover:text-primary">語音生成</span>
           </button>
 
-          <RouterLink to="/tools" class="glass-card bg-white/50 p-8 rounded-2xl hover:shadow-xl hover:bg-white hover:text-primary transition-all text-center group no-underline">
-            <div class="w-16 h-16 rounded-2xl bg-yellow-50 flex items-center justify-center text-yellow-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
+          <RouterLink to="/tools" class="glass-card dark:bg-slate-800/50 dark:border-slate-700 p-8 rounded-2xl hover:shadow-xl hover:bg-white dark:hover:bg-slate-700 hover:text-primary transition-all text-center group no-underline">
+            <div class="w-16 h-16 rounded-2xl bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Layout class="w-8 h-8" />
             </div>
-            <span class="font-bold text-slate-900 group-hover:text-primary">更多工具</span>
+            <span class="font-bold text-slate-900 dark:text-slate-200 group-hover:text-primary">更多工具</span>
           </RouterLink>
         </div>
       </section>
@@ -279,38 +279,38 @@ onMounted(() => {
           <div>
             <span class="text-primary font-bold tracking-widest uppercase text-sm">專屬推薦</span>
 
-            <h2 class="text-4xl font-bold text-slate-900 mt-4 mb-6 leading-tight">
+            <h2 class="text-4xl font-bold text-slate-900 dark:text-slate-100 mt-4 mb-6 leading-tight">
               為不同身分的您，量身打造工具清單。
             </h2>
 
             <div class="space-y-6">
-              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white/60 hover:shadow-lg transition-all cursor-default">
-                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary flex-shrink-0">
+              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-lg transition-all cursor-default">
+                <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary flex-shrink-0">
                   <GraduationCap class="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 class="font-bold text-slate-900">學生族群</h4>
-                  <p class="text-slate-500">論文摘要、語言學習、數學解題助手。</p>
+                  <h4 class="font-bold text-slate-900 dark:text-slate-100">學生族群</h4>
+                  <p class="text-slate-500 dark:text-slate-400">論文摘要、語言學習、數學解題助手。</p>
                 </div>
               </div>
 
-              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white/60 hover:shadow-lg transition-all cursor-default">
-                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0">
+              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-lg transition-all cursor-default">
+                <div class="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 flex-shrink-0">
                   <Briefcase class="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 class="font-bold text-slate-900">上班族</h4>
-                  <p class="text-slate-500">會議紀錄、PPT 自動生成、Excel 專家。</p>
+                  <h4 class="font-bold text-slate-900 dark:text-slate-100">上班族</h4>
+                  <p class="text-slate-500 dark:text-slate-400">會議紀錄、PPT 自動生成、Excel 專家。</p>
                 </div>
               </div>
 
-              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white/60 hover:shadow-lg transition-all cursor-default">
-                <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 flex-shrink-0">
+              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-lg transition-all cursor-default">
+                <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 flex-shrink-0">
                   <PenTool class="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 class="font-bold text-slate-900">創作者</h4>
-                  <p class="text-slate-500">社群貼文、SEO 優化、Podcast 全自動後製。</p>
+                  <h4 class="font-bold text-slate-900 dark:text-slate-100">創作者</h4>
+                  <p class="text-slate-500 dark:text-slate-400">社群貼文、SEO 優化、Podcast 全自動後製。</p>
                 </div>
               </div>
             </div>
@@ -346,7 +346,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <footer class="py-12 text-center text-slate-400/80 mt-12 bg-transparent">
+      <footer class="py-12 text-center text-slate-400/80 dark:text-slate-500/80 mt-12 bg-transparent">
         <p>&copy; 2026 AI Hub. 專業 AI 工具導航門戶</p>
       </footer>
     </div>

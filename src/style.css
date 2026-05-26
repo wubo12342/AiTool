@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4 class-based dark mode */
+@custom-variant dark (&:is(.dark, .dark *));
+
 :root {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
@@ -10,6 +13,11 @@ body {
   min-height: 100vh;
   background-color: #f8fafc;
   color: #0f172a;
+}
+
+.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
 }
 
 #app {
@@ -23,7 +31,7 @@ body {
 }
 
 @utility glass-card {
-  @apply bg-white/95 border border-slate-200 rounded-2xl shadow-xl;
+  @apply bg-white/95 dark:bg-slate-800/95 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl;
 }
 
 @utility input-box {

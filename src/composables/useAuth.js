@@ -4,6 +4,7 @@ import axios from 'axios';
 // 把狀態定義在函數外，這樣所有組件 import 都是共用同一份狀態 (類似 Pinia 的全域狀態)
 const isLoggedIn = ref(false);
 const username = ref('');
+const userRole = ref('');
 
 export function useAuth() {
   
@@ -21,6 +22,7 @@ export function useAuth() {
           // Token 驗證成功
           isLoggedIn.value = true;
           username.value = user.username;
+          userRole.value = user.role || '';
         } else {
           // Token 無效或是被篡改，強制登出！
           console.warn("JWT Token is invalid or tampered! Logging out...");
@@ -40,6 +42,7 @@ export function useAuth() {
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('user');
     isLoggedIn.value = false;
+    userRole.value = '';
     // 重整網頁清除其他可能的畫面殘留
     window.location.reload();
   };
@@ -47,6 +50,7 @@ export function useAuth() {
   return {
     isLoggedIn,
     username,
+    userRole,
     checkAuth,
     handleLogout
   };

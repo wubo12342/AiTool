@@ -5,6 +5,7 @@ import Profile from '../components/Profile.vue'
 import CategoryExplore from '../components/CategoryExplore.vue'
 import ToolsList from '../components/ToolsList.vue'
 import FeatureComparison from '../components/FeatureComparison.vue'
+import Admin from '../components/Admin.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -33,6 +34,10 @@ const router = createRouter({
     {
       path: '/compare',
       component: FeatureComparison
+    },
+    {
+      path: '/admin',
+      component: Admin
     }
   ]
 })

@@ -152,7 +152,7 @@ const handleAuth = async () => {
     v-if="isOpen"
     class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80"
   >
-    <div class="glass-card w-full max-w-md overflow-hidden relative">
+    <div class="glass-card dark:bg-slate-800/95 dark:border-slate-700 w-full max-w-md overflow-hidden relative">
       <button
         @click="closeModal"
         class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 transition-colors"
@@ -163,18 +163,18 @@ const handleAuth = async () => {
 
       <div class="p-8">
         <div class="text-center mb-8">
-          <h2 class="text-3xl font-bold text-slate-900 mb-2">
+          <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
             {{ mode === 'login' ? '歡迎回來' : '加入我們' }}
           </h2>
-          <p class="text-slate-500">
+          <p class="text-slate-500 dark:text-slate-400">
             {{ mode === 'login' ? '請登入您的帳號以繼續' : '建立帳號以享受完整功能' }}
           </p>
         </div>
 
-        <div class="flex p-1 bg-slate-100 rounded-xl mb-8">
+        <div class="flex p-1 bg-slate-100 dark:bg-slate-700 rounded-xl mb-8">
           <button
             @click="switchMode('login')"
-            :class="mode === 'login' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'"
+            :class="mode === 'login' ? 'bg-white dark:bg-slate-600 shadow-sm text-primary' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'"
             class="flex-1 py-2 rounded-lg font-bold transition-all text-sm"
             type="button"
           >
@@ -182,7 +182,7 @@ const handleAuth = async () => {
           </button>
           <button
             @click="switchMode('register')"
-            :class="mode === 'register' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'"
+            :class="mode === 'register' ? 'bg-white dark:bg-slate-600 shadow-sm text-primary' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'"
             class="flex-1 py-2 rounded-lg font-bold transition-all text-sm"
             type="button"
           >
@@ -208,7 +208,7 @@ const handleAuth = async () => {
 
         <form @submit.prevent="handleAuth" class="space-y-6">
           <div class="space-y-2">
-            <label class="text-sm font-bold text-slate-700 ml-1">帳號名稱</label>
+            <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">帳號名稱</label>
             <div class="relative group">
               <div
                 class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors"
@@ -220,13 +220,13 @@ const handleAuth = async () => {
                 type="text"
                 required
                 placeholder="請輸入帳號"
-                class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+                class="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
               >
             </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-bold text-slate-700 ml-1">密碼</label>
+            <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">密碼</label>
             <div class="relative group">
               <div
                 class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors"
@@ -238,7 +238,7 @@ const handleAuth = async () => {
                 :type="showPassword ? 'text' : 'password'"
                 required
                 placeholder="請輸入密碼"
-                class="w-full pl-12 pr-12 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+                class="w-full pl-12 pr-12 py-3 bg-white dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
               >
               <button
                 type="button"
@@ -252,7 +252,7 @@ const handleAuth = async () => {
           </div>
 
           <div v-if="mode === 'register'" class="space-y-2">
-            <label class="text-sm font-bold text-slate-700 ml-1">確認密碼</label>
+            <label class="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">確認密碼</label>
             <div class="relative group">
               <div
                 class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors"
@@ -264,7 +264,7 @@ const handleAuth = async () => {
                 :type="showConfirmPassword ? 'text' : 'password'"
                 required
                 placeholder="請再次輸入密碼"
-                class="w-full pl-12 pr-12 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+                class="w-full pl-12 pr-12 py-3 bg-white dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
               >
               <button
                 type="button"

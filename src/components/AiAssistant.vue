@@ -187,7 +187,7 @@ const renderSafeMarkdown = (text) => {
       leave-from-class="translate-y-0 opacity-100 scale-100"
       leave-to-class="translate-y-10 opacity-0 scale-95"
     >
-      <div v-if="isOpen" class="mb-4 w-[360px] sm:w-[420px] h-[600px] bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
+      <div v-if="isOpen" class="mb-4 w-[360px] sm:w-[420px] h-[600px] bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 flex flex-col overflow-hidden">
         
         <!-- Header -->
         <div class="p-6 bg-gradient-to-r from-primary to-secondary text-white shrink-0 flex items-center justify-between">
@@ -214,7 +214,7 @@ const renderSafeMarkdown = (text) => {
         </div>
 
         <!-- Content Area -->
-        <div class="flex-grow flex flex-col overflow-hidden relative bg-slate-50">
+        <div class="flex-grow flex flex-col overflow-hidden relative bg-slate-50 dark:bg-slate-900">
           
           <!-- Preferences Settings Panel -->
           <Transition
@@ -225,21 +225,21 @@ const renderSafeMarkdown = (text) => {
             leave-from-class="translate-x-0"
             leave-to-class="translate-x-full"
           >
-            <div v-if="showSettings" class="absolute inset-0 z-20 bg-white flex flex-col p-8">
+            <div v-if="showSettings" class="absolute inset-0 z-20 bg-white dark:bg-slate-800 flex flex-col p-8">
               <button @click="showSettings = false" class="flex items-center gap-2 text-slate-500 hover:text-primary mb-6 border-none bg-transparent cursor-pointer font-bold transition-colors">
                 <ArrowLeft class="w-4 h-4" /> 返回對話
               </button>
 
               <div class="mb-6">
-                <h4 class="text-xl font-bold text-slate-900 mb-2">AI 偏好設定</h4>
-                <p class="text-sm text-slate-500">設定您的身份，讓 AI 提供更精準的排版與工具推薦。</p>
+                <h4 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">AI 偏好設定</h4>
+                <p class="text-sm text-slate-500 dark:text-slate-400">設定您的身份，讓 AI 提供更精準的排版與工具推薦。</p>
               </div>
 
               <div class="flex-grow">
-                <label class="block text-sm font-bold text-slate-700 mb-2">個人化提示詞</label>
-                <textarea 
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">個人化提示詞</label>
+                <textarea
                   v-model="userPreferences"
-                  class="w-full h-48 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm leading-relaxed resize-none transition-all"
+                  class="w-full h-48 p-4 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm leading-relaxed resize-none transition-all"
                   placeholder="例如：我是一名學生，偏好免費工具。"
                 ></textarea>
               </div>
@@ -276,7 +276,7 @@ const renderSafeMarkdown = (text) => {
               </div>
               
               <div 
-                :class="msg.role === 'ai' ? 'bg-white text-slate-700 rounded-bl-none border border-slate-100' : 'bg-primary text-white rounded-br-none'"
+                :class="msg.role === 'ai' ? 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-bl-none border border-slate-100 dark:border-slate-600' : 'bg-primary text-white rounded-br-none'"
                 class="max-w-[85%] p-4 rounded-3xl shadow-sm text-sm"
               >
                 <!-- Markdown Rendering Content -->
@@ -314,13 +314,13 @@ const renderSafeMarkdown = (text) => {
           </div>
 
           <!-- Input Area -->
-          <div class="p-6 bg-white border-t border-slate-100">
+          <div class="p-6 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
             <form @submit.prevent="sendMessage" class="relative">
-              <input 
+              <input
                 v-model="chatInput"
-                type="text" 
+                type="text"
                 placeholder="請輸入任何問題..."
-                class="w-full pl-5 pr-14 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all shadow-inner"
+                class="w-full pl-5 pr-14 py-4 bg-slate-50 dark:bg-slate-700 dark:text-slate-200 border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all shadow-inner"
               >
               <button 
                 type="submit"

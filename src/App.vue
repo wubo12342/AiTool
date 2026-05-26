@@ -9,11 +9,13 @@ import NeuralTechBackground from './components/NeuralTechBackground.vue'
 import Lobby from './components/Lobby.vue'
 import AiAssistant from './components/AiAssistant.vue'
 import { useAuth } from './composables/useAuth.js'
+import { useDarkMode } from './composables/useDarkMode.js'
 
 const showAuthModal = ref(false)
 const authMode = ref('login')
 
 const { isLoggedIn } = useAuth()
+const { isDark } = useDarkMode()
 
 const openAuth = (mode) => {
   authMode.value = mode
@@ -22,7 +24,7 @@ const openAuth = (mode) => {
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-slate-50">
+  <div class="relative min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
     <!-- 背景動畫：依登入狀態切換，整個 app 只掛一份 -->
     <InteractiveBackground
       v-if="!isLoggedIn"

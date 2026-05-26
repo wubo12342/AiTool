@@ -61,12 +61,12 @@ const getTagColor = (tagName) => {
       <div class="flip-card-face flip-card-front">
         <div class="flex flex-col h-full">
           <div class="flex justify-between items-start mb-5">
-            <div class="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center overflow-hidden">
+            <div class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-700 shadow-md flex items-center justify-center overflow-hidden">
               <img :src="logoUrl" :alt="name" class="w-11 h-11 object-contain">
             </div>
 
             <div class="flex flex-col items-end gap-2">
-              <div class="flex gap-1 text-orange-400 items-center bg-orange-50 px-2 py-1 rounded-lg text-sm font-bold">
+              <div class="flex gap-1 text-orange-400 items-center bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-lg text-sm font-bold">
                 <Star class="w-4 h-4 fill-current" />
                 {{ rating }}
               </div>
@@ -75,7 +75,7 @@ const getTagColor = (tagName) => {
                 v-if="showFavoriteButton"
                 @click.stop="emit('toggleFavorite')"
                 class="p-2 rounded-full transition-colors"
-                :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
+                :class="isFavorited ? 'text-red-500 bg-red-50 dark:bg-red-900/30' : 'text-slate-400 bg-slate-100 dark:bg-slate-700 hover:text-red-500'"
                 type="button"
               >
                 <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
@@ -83,7 +83,7 @@ const getTagColor = (tagName) => {
             </div>
           </div>
 
-          <h3 class="text-xl font-bold text-slate-900 mb-4">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
             {{ name }}
           </h3>
 
@@ -105,12 +105,12 @@ const getTagColor = (tagName) => {
         <div class="flex flex-col h-full">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
+              <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
                 <img :src="logoUrl" :alt="name" class="w-8 h-8 object-contain">
               </div>
 
               <div>
-                <h3 class="text-base font-bold text-slate-900">
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">
                   {{ name }}
                 </h3>
                 <div class="flex gap-1 text-orange-400 items-center text-sm font-bold mt-1">
@@ -124,14 +124,14 @@ const getTagColor = (tagName) => {
               v-if="showFavoriteButton"
               @click.stop="emit('toggleFavorite')"
               class="p-2 rounded-full transition-colors"
-              :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
+              :class="isFavorited ? 'text-red-500 bg-red-50 dark:bg-red-900/30' : 'text-slate-400 bg-slate-100 dark:bg-slate-700 hover:text-red-500'"
               type="button"
             >
               <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
             </button>
           </div>
 
-          <p class="text-sm leading-7 text-slate-600 flex-grow">
+          <p class="text-sm leading-7 text-slate-600 dark:text-slate-300 flex-grow">
             {{ description }}
           </p>
 
@@ -148,7 +148,7 @@ const getTagColor = (tagName) => {
 
           <button
             @click.stop="goDetail"
-            class="w-full mt-6 py-3 text-center bg-slate-100 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all"
+            class="w-full mt-6 py-3 text-center bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-white text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-all"
             type="button"
           >
             查看詳情
@@ -160,15 +160,15 @@ const getTagColor = (tagName) => {
 
   <!-- 靜態卡片模式 (無翻轉) -->
   <div v-else class="static-card group" @click="emit('click')">
-    <div class="flex flex-col h-full p-6 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-white/20 shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all duration-300 min-h-[320px]">
+    <div class="flex flex-col h-full p-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-white/20 dark:border-slate-700/50 shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all duration-300 min-h-[320px]">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+          <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
             <img :src="logoUrl" :alt="name" class="w-8 h-8 object-contain">
           </div>
 
           <div>
-            <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">
               {{ name }}
             </h3>
             <div class="flex gap-1 text-orange-400 items-center text-sm font-bold mt-1">
@@ -182,14 +182,14 @@ const getTagColor = (tagName) => {
           v-if="showFavoriteButton"
           @click.stop="emit('toggleFavorite')"
           class="p-2 rounded-full transition-colors"
-          :class="isFavorited ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-100 hover:text-red-500'"
+          :class="isFavorited ? 'text-red-500 bg-red-50 dark:bg-red-900/30' : 'text-slate-400 bg-slate-100 dark:bg-slate-700 hover:text-red-500'"
           type="button"
         >
           <Heart class="w-5 h-5" :class="{ 'fill-current': isFavorited }" />
         </button>
       </div>
 
-      <p class="text-sm leading-7 text-slate-600 flex-grow mb-6">
+      <p class="text-sm leading-7 text-slate-600 dark:text-slate-300 flex-grow mb-6">
         {{ description }}
       </p>
 
@@ -206,7 +206,7 @@ const getTagColor = (tagName) => {
 
       <button
         @click.stop="goDetail"
-        class="w-full py-3 bg-slate-100 hover:bg-primary hover:text-white text-slate-700 font-bold rounded-xl transition-all border-none cursor-pointer flex items-center justify-center gap-2 group/btn"
+        class="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-white text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-all border-none cursor-pointer flex items-center justify-center gap-2 group/btn"
       >
         查看詳情
         <ExternalLink class="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
@@ -254,6 +254,15 @@ const getTagColor = (tagName) => {
 .flip-card-back {
   background: rgba(255, 255, 255, 0.95);
   transform: rotateY(180deg);
+}
+
+:global(.dark) .flip-card-front {
+  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(71, 85, 105, 0.5);
+}
+
+:global(.dark) .flip-card-back {
+  background: rgba(30, 41, 59, 0.98);
 }
 
 .flip-card:hover .flip-card-face {
