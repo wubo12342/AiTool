@@ -1,32 +1,27 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, RouterLink, useRouter } from 'vue-router'
 import axios from 'axios'
 import {
-  Star,
-  ArrowLeft,
-  Send,
-  CheckCircle2,
-  Bot,
-  Heart,
-  ExternalLink,
-  ArrowRight
+  Star, ArrowLeft, Send, CheckCircle2, Bot,
+  Heart, ExternalLink, Tag, DollarSign, MessageSquare
 } from 'lucide-vue-next'
+import ToolCard from './ToolCard.vue'
 import { useFavorites } from '../composables/useFavorites.js'
 
-const route = useRoute()
+const route  = useRoute()
+const router = useRouter()
 const { toggleFavorite, isFavorited } = useFavorites()
 
 const loading = ref(true)
-const error = ref('')
-const tool = ref(null)
-const tools = ref([])
+const error   = ref('')
+const tool    = ref(null)
+const tools   = ref([])
 
-const comments = ref([])
-const newComment = ref('')
-const userRating = ref(0)
+const comments    = ref([])
+const newComment  = ref('')
+const userRating  = ref(0)
 
-// H7 — 用 AbortController 取消上一個請求，避免快速切換時舊回應蓋掉新資料
 let activeController = null
 
 const fetchToolDetail = async (signal) => {
@@ -35,9 +30,9 @@ const fetchToolDetail = async (signal) => {
     tool.value = res.data
   } catch (err) {
     if (axios.isCancel?.(err) || err.name === 'CanceledError') return
-    const fallbackTools = getFallbackTools()
-    tools.value = fallbackTools
-    tool.value = fallbackTools.find(item => String(item.id) === String(route.params.id)) || null
+    const fb = getFallbackTools()
+    tools.value = fb
+    tool.value  = fb.find(item => String(item.id) === String(route.params.id)) || null
   }
 }
 
@@ -55,6 +50,7 @@ const fetchComments = async (signal) => {
   try {
     const res = await axios.get(`/api/comments.php?tool_id=${route.params.id}`, { signal })
     comments.value = res.data
+    commentPage.value = 1
   } catch (err) {
     if (axios.isCancel?.(err) || err.name === 'CanceledError') return
     comments.value = []
@@ -63,100 +59,71 @@ const fetchComments = async (signal) => {
 
 const addComment = async () => {
   if (!newComment.value.trim() && userRating.value === 0) return
-
-  console.log('準備發布評論:', {
-    tool_id: route.params.id,
-    comment: newComment.value,
-    stars: userRating.value
-  });
-
   try {
     const res = await axios.post('/api/submit_review.php', {
-      token: localStorage.getItem('jwt_token'),
+      token:   localStorage.getItem('jwt_token'),
       tool_id: route.params.id,
       comment: newComment.value.trim() || '（僅給予星級評分）',
-      stars: userRating.value || 5
+      stars:   userRating.value || 5
     })
-    
-    console.log('伺服器回傳:', res.data);
-
     if (res.data.success) {
       await fetchComments()
       newComment.value = ''
       userRating.value = 0
     } else {
-      alert('發布失敗: ' + (res.data.error || '原因不明'));
+      alert('發布失敗: ' + (res.data.error || '原因不明'))
     }
   } catch (err) {
-    console.error('發布評論失敗 (詳細錯誤):', err);
-    alert('網路錯誤或伺服器無回應，請檢查控制台。');
+    console.error(err)
+    alert('網路錯誤，請稍後再試。')
   }
 }
 
-const submitRating = async (rating) => {
-  userRating.value = rating
+const submitRating = (rating) => { userRating.value = rating }
 
-  try {
-    await axios.post('/api/rate.php', {
-      tool_id: route.params.id,
-      rating
-    })
-  } catch (err) {
-    console.warn('評分 API 尚未完成')
-  }
-}
+const PAGE_SIZE      = 5
+const commentPage    = ref(1)
+const commentSort    = ref('desc')
+const sortedComments = computed(() =>
+  [...comments.value].sort((a, b) =>
+    commentSort.value === 'desc'
+      ? (Number(b.rating) || 5) - (Number(a.rating) || 5)
+      : (Number(a.rating) || 5) - (Number(b.rating) || 5)
+  )
+)
+const commentPageCount = computed(() => Math.max(1, Math.ceil(sortedComments.value.length / PAGE_SIZE)))
+const pagedComments    = computed(() =>
+  sortedComments.value.slice((commentPage.value - 1) * PAGE_SIZE, commentPage.value * PAGE_SIZE)
+)
 
-const getRatingCount = (star) => {
-  return comments.value.filter(comment => Number(comment.rating || 5) === star).length
-}
-
+const getRatingCount   = (star) => comments.value.filter(c => Number(c.rating || 5) === star).length
 const getRatingPercent = (star) => {
   const total = comments.value.length || 1
-  const count = getRatingCount(star)
-  return (count / total) * 100
+  return (getRatingCount(star) / total) * 100
 }
 
 const recommendedTools = computed(() => {
   if (!tool.value) return []
-
-  // 取得目前工具的標籤 (包含分類與價格狀態)
   const currentTags = tool.value.tags || []
-
   return tools.value
-    .filter(item => item.id !== tool.value.id) // 排除目前正在查看的工具
+    .filter(item => item.id !== tool.value.id)
     .map(item => {
-      // 計算與目前工具重合的標籤數量
-      const itemTags = item.tags || []
-      const matchCount = itemTags.filter(tag => currentTags.includes(tag)).length
+      const matchCount = (item.tags || []).filter(t => currentTags.includes(t)).length
       return { ...item, matchCount }
     })
-    .sort((a, b) => {
-      // 優先依照匹配標籤數量排序，數量相同則依評分排序
-      if (b.matchCount !== a.matchCount) {
-        return b.matchCount - a.matchCount
-      }
-      return b.rating - a.rating
-    })
+    .sort((a, b) => b.matchCount !== a.matchCount ? b.matchCount - a.matchCount : b.rating - a.rating)
     .slice(0, 3)
 })
 
 const reloadAll = async () => {
-  // 取消上一輪還在跑的請求
   if (activeController) activeController.abort()
   activeController = new AbortController()
   const signal = activeController.signal
-
   loading.value = true
   try {
-    await Promise.all([
-      fetchAllTools(signal),
-      fetchToolDetail(signal),
-      fetchComments(signal)
-    ])
+    await Promise.all([fetchAllTools(signal), fetchToolDetail(signal), fetchComments(signal)])
   } catch (err) {
-    if (!axios.isCancel?.(err) && err.name !== 'CanceledError') {
-      error.value = '資料載入失敗，請稍後再試。'
-    }
+    if (!axios.isCancel?.(err) && err.name !== 'CanceledError') error.value = '資料載入失敗，請稍後再試。'
   } finally {
     if (!signal.aborted) loading.value = false
   }
@@ -164,231 +131,164 @@ const reloadAll = async () => {
 
 onMounted(reloadAll)
 
-// 切換到不同工具時，先 abort 舊請求再發新請求
 watch(() => route.params.id, (newId) => {
   if (!newId) return
   if (activeController) activeController.abort()
   activeController = new AbortController()
   const signal = activeController.signal
-
   fetchToolDetail(signal)
   fetchComments(signal)
   window.scrollTo({ top: 0, behavior: 'smooth' })
 })
 
-onBeforeUnmount(() => {
-  if (activeController) activeController.abort()
-})
+onBeforeUnmount(() => { if (activeController) activeController.abort() })
 
 const getEmbedUrl = (url) => {
   if (!url) return ''
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
-    const match = url.match(regExp)
-    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url
+    const m = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
+    return (m && m[2].length === 11) ? `https://www.youtube.com/embed/${m[2]}` : url
   }
   return url
 }
 
-const getTagColor = (tagName) => {
-  const colors = {
-    '文字生成': 'bg-blue-100 text-blue-700',
-    '圖像生成': 'bg-purple-100 text-purple-700',
-    '影片製作': 'bg-orange-100 text-orange-700',
-    '程式開發': 'bg-green-100 text-green-700',
-    '語音生成': 'bg-red-100 text-red-700',
-    '簡報設計': 'bg-yellow-100 text-yellow-700',
-    '資料整理': 'bg-indigo-100 text-indigo-700',
-    '翻譯語言': 'bg-teal-100 text-teal-700',
-    '免費版': 'bg-emerald-100 text-emerald-700',
-    '付費': 'bg-slate-200 text-slate-800',
-    '訂閱制': 'bg-amber-100 text-amber-700',
-    'Freemium': 'bg-cyan-100 text-cyan-700'
-  }
-  return colors[tagName] || 'bg-slate-100 text-slate-600'
+const TAG_COLORS = {
+  '文字生成': 'bg-blue-100 text-blue-700',
+  '圖像生成': 'bg-purple-100 text-purple-700',
+  '影片製作': 'bg-orange-100 text-orange-700',
+  '程式開發': 'bg-green-100 text-green-700',
+  '語音生成': 'bg-red-100 text-red-700',
+  '簡報設計': 'bg-yellow-100 text-yellow-700',
+  '資料整理': 'bg-indigo-100 text-indigo-700',
+  '翻譯語言': 'bg-teal-100 text-teal-700',
+  'Free': 'bg-emerald-100 text-emerald-700',
+  'Freemium': 'bg-cyan-100 text-cyan-700',
+  'Paid': 'bg-rose-100 text-rose-700',
 }
+const getTagColor = (tag) => TAG_COLORS[tag] || 'bg-slate-100 text-slate-600'
 
 const getFallbackTools = () => [
-  {
-    id: 1,
-    name: 'ChatGPT',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=ChatGPT',
-    rating: 4.9,
-    tags: ['文本創作', '程式開發', '免費版'],
-    officialUrl: 'https://chat.openai.com',
-    description:
-      'ChatGPT 是一款強大的 AI 對話與生產力工具，可協助使用者進行文章撰寫、程式碼生成、資料整理、創意發想與學習輔助。適合學生、上班族、開發者與內容創作者使用。',
-    plans: [
-      {
-        name: '免費方案',
-        price: '$0',
-        features: ['基礎 AI 對話', '有限使用次數', '適合入門體驗']
-      },
-      {
-        name: '進階方案',
-        price: '$20 / 月',
-        features: ['更快回應速度', '更多模型功能', '適合日常工作']
-      },
-      {
-        name: '團隊方案',
-        price: '客製報價',
-        features: ['團隊管理', '共享工作區', '企業級支援']
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Midjourney',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Midjourney',
-    rating: 4.8,
-    tags: ['圖像生成', '設計', '付費'],
-    officialUrl: 'https://www.midjourney.com',
-    description:
-      'Midjourney 是一款 AI 圖像生成工具，可透過文字提示產生高品質圖片，適合設計師、插畫師、行銷人員與創作者用於概念設計、視覺發想與藝術創作。',
-    plans: [
-      {
-        name: 'Basic',
-        price: '$10 / 月',
-        features: ['基礎圖片生成', '有限快速生成', '個人使用']
-      },
-      {
-        name: 'Standard',
-        price: '$30 / 月',
-        features: ['更多生成額度', '商業使用', '適合創作者']
-      },
-      {
-        name: 'Pro',
-        price: '$60 / 月',
-        features: ['高額度生成', '隱私模式', '專業工作流']
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Jasper AI',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Jasper',
-    rating: 4.7,
-    tags: ['行銷文案', '內容生成', '訂閱制'],
-    officialUrl: 'https://www.jasper.ai',
-    description:
-      'Jasper AI 專注於行銷文案與品牌內容生成，能協助撰寫廣告文案、部落格文章、社群貼文與產品描述，適合行銷團隊與內容創作者。',
-    plans: [
-      {
-        name: 'Creator',
-        price: '$39 / 月',
-        features: ['個人文案生成', '基礎模板', '快速產文']
-      },
-      {
-        name: 'Teams',
-        price: '$99 / 月',
-        features: ['多人協作', '品牌語氣設定', '行銷模板']
-      },
-      {
-        name: 'Business',
-        price: '客製報價',
-        features: ['企業整合', '權限管理', '專屬支援']
-      }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Notion AI',
-    logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Notion',
-    rating: 4.9,
-    tags: ['生產力', '筆記整理', 'Freemium'],
-    officialUrl: 'https://www.notion.so',
-    description:
-      'Notion AI 結合筆記、文件、專案管理與 AI 助理功能，可協助摘要內容、整理想法、撰寫文件與提升團隊協作效率。',
-    plans: [
-      {
-        name: 'Free',
-        price: '$0',
-        features: ['基本筆記功能', '個人工作區', '少量 AI 功能']
-      },
-      {
-        name: 'Plus',
-        price: '$10 / 月',
-        features: ['更多儲存空間', '完整 AI 輔助', '適合個人進階']
-      },
-      {
-        name: 'Business',
-        price: '$18 / 月',
-        features: ['團隊管理', '權限控管', '進階協作']
-      }
-    ]
-  }
+  { id: 1, name: 'ChatGPT', logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=ChatGPT', rating: 4.9, tags: ['文字生成', 'Free'], officialUrl: 'https://chat.openai.com', description: 'ChatGPT 是一款強大的 AI 對話工具，可協助文章撰寫、程式碼生成、資料整理與創意發想。', plans: [{ name: '免費方案', price: '$0', features: ['基礎對話', '有限使用次數'] }, { name: '進階方案', price: '$20 / 月', features: ['更快速度', '更多功能'] }, { name: '團隊方案', price: '客製報價', features: ['團隊管理', '企業支援'] }] },
+  { id: 2, name: 'Midjourney', logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Midjourney', rating: 4.8, tags: ['圖像生成', 'Paid'], officialUrl: 'https://www.midjourney.com', description: 'Midjourney 是頂尖 AI 圖像生成工具，透過文字提示產生高品質藝術圖片。', plans: [{ name: 'Basic', price: '$10 / 月', features: ['基礎生成', '個人使用'] }, { name: 'Standard', price: '$30 / 月', features: ['更多額度', '商業使用'] }, { name: 'Pro', price: '$60 / 月', features: ['高額度', '隱私模式'] }] },
+  { id: 3, name: 'Notion AI', logoUrl: 'https://api.dicebear.com/7.x/identicon/svg?seed=Notion', rating: 4.9, tags: ['資料整理', 'Freemium'], officialUrl: 'https://www.notion.so', description: 'Notion AI 結合筆記與 AI 助理，協助摘要、整理想法與撰寫文件。', plans: [{ name: 'Free', price: '$0', features: ['基本筆記', '少量 AI'] }, { name: 'Plus', price: '$10 / 月', features: ['完整 AI', '個人進階'] }, { name: 'Business', price: '$18 / 月', features: ['團隊管理', '進階協作'] }] },
 ]
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 px-4 py-10 animate-in fade-in duration-500">
-    <div v-if="loading" class="max-w-7xl mx-auto py-32 text-center text-slate-400 font-bold">
-      載入中...
+  <div class="min-h-screen">
+
+    <!-- ── Loading ── -->
+    <div v-if="loading" class="max-w-5xl mx-auto px-4 py-20 space-y-6">
+      <div class="h-8 w-48 rounded-xl bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
+      <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-8 animate-pulse">
+        <div class="flex gap-6 items-start">
+          <div class="w-24 h-24 rounded-2xl bg-slate-200 dark:bg-slate-700 flex-shrink-0"></div>
+          <div class="flex-1 space-y-3">
+            <div class="h-8 w-2/5 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+            <div class="h-5 w-1/4 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+            <div class="flex gap-2 pt-1">
+              <div class="h-7 w-20 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+              <div class="h-7 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+            </div>
+            <div class="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-lg mt-2"></div>
+            <div class="h-4 w-4/5 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div v-else-if="error" class="max-w-7xl mx-auto py-32 text-center text-red-500 font-bold">
+    <!-- ── Error ── -->
+    <div v-else-if="error" class="max-w-5xl mx-auto py-32 text-center text-red-500 font-bold px-4">
       {{ error }}
     </div>
 
-    <div v-else-if="tool" class="max-w-7xl mx-auto">
-      <RouterLink
-        to="/"
-        class="mb-8 inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-primary font-bold no-underline transition-colors"
-      >
-        <ArrowLeft class="w-5 h-5" />
-        返回首頁
+    <!-- ── Not found ── -->
+    <div v-else-if="!tool" class="max-w-3xl mx-auto text-center py-32 px-4">
+      <div class="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Bot class="w-10 h-10 text-slate-300 dark:text-slate-600" />
+      </div>
+      <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-3">找不到此工具</h1>
+      <p class="text-slate-500 mb-8">這款工具可能已被移除或不存在。</p>
+      <RouterLink to="/tools" class="inline-flex items-center gap-2 px-8 py-3.5 bg-primary text-white rounded-xl font-bold no-underline hover:bg-blue-700 transition-all">
+        <ArrowLeft class="w-4 h-4" /> 回到工具列表
       </RouterLink>
+    </div>
 
-      <section class="glass-card p-8 md:p-10 mb-10 rounded-[2.5rem] border border-white dark:border-slate-700 shadow-xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl">
-        <div class="grid md:grid-cols-[180px_1fr] gap-10 items-center">
-          <div class="bg-white dark:bg-slate-700 rounded-3xl shadow-lg p-8 flex items-center justify-center border border-slate-50 dark:border-slate-600">
-            <img
-              :src="tool.logoUrl"
-              :alt="tool.name"
-              class="w-28 h-28 object-contain hover:scale-105 transition-transform duration-500"
-            >
+    <!-- ── Main content ── -->
+    <div v-else class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-1.5 text-sm text-slate-400 mb-6">
+        <RouterLink to="/" class="hover:text-primary transition-colors no-underline">首頁</RouterLink>
+        <span>/</span>
+        <RouterLink to="/tools" class="hover:text-primary transition-colors no-underline">所有工具</RouterLink>
+        <span>/</span>
+        <span class="text-slate-700 dark:text-slate-300 font-medium truncate max-w-[180px]">{{ tool.name }}</span>
+      </nav>
+
+      <!-- ══════════ HERO ══════════ -->
+      <section class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 sm:p-8 mb-6">
+        <div class="flex flex-col sm:flex-row gap-6 sm:gap-8">
+          <!-- Logo -->
+          <div class="w-24 h-24 rounded-2xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 flex items-center justify-center flex-shrink-0 self-start">
+            <img :src="tool.logoUrl" :alt="tool.name" class="w-16 h-16 object-contain">
           </div>
 
-          <div>
-            <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-5">
-              <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <!-- Name + Favorite -->
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
                 {{ tool.name }}
               </h1>
-
               <button
                 @click="toggleFavorite(tool)"
-                class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 cursor-pointer text-sm"
-                :class="isFavorited(tool.id) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border font-semibold text-sm transition-all cursor-pointer flex-shrink-0"
+                :class="isFavorited(tool.id)
+                  ? 'bg-rose-50 border-rose-200 text-rose-500 dark:bg-rose-900/20 dark:border-rose-700'
+                  : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 hover:text-rose-500 hover:border-rose-200'"
               >
                 <Heart class="w-4 h-4" :class="{ 'fill-current': isFavorited(tool.id) }" />
-                {{ isFavorited(tool.id) ? '已收藏' : '加入收藏' }}
+                {{ isFavorited(tool.id) ? '已收藏' : '收藏' }}
               </button>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2.5 mb-6">
+            <!-- Rating row -->
+            <div class="flex items-center gap-3 mb-4">
+              <div class="flex items-center gap-0.5">
+                <Star
+                  v-for="n in 5" :key="n"
+                  class="w-4 h-4"
+                  :class="n <= Math.round(tool.rating) ? 'text-amber-400 fill-current' : 'text-slate-200 dark:text-slate-600'"
+                />
+              </div>
+              <span class="text-lg font-bold text-slate-900 dark:text-white">{{ tool.rating }}</span>
+              <span class="text-sm text-slate-400 dark:text-slate-500">·</span>
+              <span class="text-sm text-slate-500 dark:text-slate-400 font-medium">{{ comments.length }} 則評價</span>
+            </div>
+
+            <!-- Tags (all: category + price + feature) -->
+            <div class="flex flex-wrap gap-2 mb-5">
               <span
                 v-for="tag in tool.tags"
                 :key="tag"
-                class="px-3 py-1 rounded-lg text-sm font-bold uppercase tracking-wider"
+                class="px-3 py-1 rounded-lg text-sm font-semibold"
                 :class="getTagColor(tag)"
               >
                 {{ tag }}
               </span>
-
-              <span class="flex items-center gap-1 px-3 py-1 rounded-lg bg-orange-50 text-orange-500 text-[10px] font-bold">
-                <Star class="w-3.5 h-3.5 fill-current" />
-                {{ tool.rating }}
-              </span>
             </div>
 
-            <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-lg font-medium max-w-3xl">
+            <!-- Description -->
+            <p class="text-base text-slate-600 dark:text-slate-300 leading-7 mb-6">
               {{ tool.description }}
             </p>
 
+            <!-- CTA -->
             <a
               :href="tool.officialUrl || '#'"
               target="_blank"
-              class="mt-8 inline-flex px-8 py-3.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 border-none cursor-pointer items-center gap-2 no-underline"
+              class="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md shadow-primary/20 no-underline text-sm"
             >
               前往官方網站
               <ExternalLink class="w-4 h-4" />
@@ -396,60 +296,45 @@ const getFallbackTools = () => [
           </div>
         </div>
       </section>
-      
-      <!-- Video Section -->
-      <section v-if="tool.video_url" class="mb-16">
-        <h2 class="text-2xl font-bold text-slate-900 mb-8 px-2 flex items-center gap-3">
-          <div class="w-1.5 h-6 bg-cta rounded-full"></div>
-          介紹影片
-        </h2>
-        <div class="aspect-video max-w-4xl mx-auto rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white">
-          <iframe 
-            :src="getEmbedUrl(tool.video_url)" 
+
+      <!-- ══════════ VIDEO ══════════ -->
+      <section v-if="tool.video_url" class="mb-6">
+        <h2 class="section-title">介紹影片</h2>
+        <div class="aspect-video rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-lg">
+          <iframe
+            :src="getEmbedUrl(tool.video_url)"
             class="w-full h-full border-none"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
           ></iframe>
         </div>
       </section>
 
-      <section class="mb-16">
-        <h2 class="text-2xl font-bold text-slate-900 mb-8 px-2 flex items-center gap-3">
-          <div class="w-1.5 h-6 bg-primary rounded-full"></div>
-          價格方案
+      <!-- ══════════ PRICING ══════════ -->
+      <section v-if="tool.plans && tool.plans.length" class="mb-6">
+        <h2 class="section-title">
+          <DollarSign class="w-5 h-5 text-primary" /> 價格方案
         </h2>
-
-        <div class="grid md:grid-cols-3 gap-6">
+        <div class="grid sm:grid-cols-3 gap-4">
           <div
-            v-for="(plan, index) in tool.plans"
+            v-for="plan in tool.plans"
             :key="plan.name"
-            class="p-8 rounded-[2rem] hover:-translate-y-1 transition-all duration-300 border shadow-lg group"
-            :class="index === 1
-              ? 'bg-white dark:bg-slate-800 border-primary/20 shadow-primary/10'
-              : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'"
+            class="rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
-            <div
-              v-if="index === 1"
-              class="inline-block mb-4 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold"
-            >
-              推薦方案
-            </div>
-
-            <h3 class="text-lg font-bold text-slate-400 dark:text-slate-500 mb-2 group-hover:text-primary transition-colors">
+            <p class="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wide">
               {{ plan.name }}
-            </h3>
-
-            <p class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+            </p>
+            <p class="text-3xl font-extrabold text-slate-900 dark:text-white mb-5">
               {{ plan.price }}
             </p>
 
-            <ul class="space-y-3.5 mb-8">
+            <ul class="space-y-3">
               <li
                 v-for="feature in plan.features"
                 :key="feature"
-                class="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 font-medium text-sm"
+                class="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-400 font-medium"
               >
-                <CheckCircle2 class="w-4 h-4 text-cta flex-shrink-0" />
+                <CheckCircle2 class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                 {{ feature }}
               </li>
             </ul>
@@ -457,242 +342,202 @@ const getFallbackTools = () => [
         </div>
       </section>
 
-      <!-- Unified Reviews & Community Section -->
-      <section class="mb-20">
-        <h2 class="text-2xl font-bold text-slate-900 mb-8 px-2 flex items-center gap-3">
-          <div class="w-1.5 h-6 bg-cta rounded-full"></div>
-          評價與社群討論
+      <!-- ══════════ REVIEWS ══════════ -->
+      <section class="mb-6">
+        <h2 class="section-title">
+          <Star class="w-5 h-5 text-primary" /> 評價
         </h2>
 
-        <div class="bg-white dark:bg-slate-800 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[500px]">
-          <!-- Left Side: Rating Summary -->
-          <div class="lg:w-1/3 p-10 bg-slate-50/50 dark:bg-slate-900/50 border-r border-slate-100 dark:border-slate-700">
-            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-8">整體評分</h3>
-
-            <div class="flex items-center gap-6 mb-10">
-              <div class="text-6xl font-black text-slate-900 dark:text-slate-100 leading-none">
-                {{ tool.rating }}
-              </div>
+        <!-- Score overview + your rating -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 mb-4">
+          <div class="flex flex-col sm:flex-row gap-6 sm:gap-8">
+            <!-- Big score -->
+            <div class="flex items-center gap-4 sm:flex-col sm:items-center sm:min-w-[88px] sm:text-center">
+              <span class="text-6xl font-black text-slate-900 dark:text-white leading-none">{{ tool.rating }}</span>
               <div>
-                <div class="flex gap-1 mb-2">
-                  <Star
-                    v-for="n in 5"
-                    :key="n"
-                    class="w-5 h-5"
-                    :class="n <= Math.round(tool.rating) ? 'text-orange-400 fill-current' : 'text-slate-200 dark:text-slate-600'"
-                  />
+                <div class="flex gap-0.5 mb-1">
+                  <Star v-for="n in 5" :key="n" class="w-4 h-4"
+                    :class="n <= Math.round(tool.rating) ? 'text-amber-400 fill-current' : 'text-slate-200 dark:text-slate-600'" />
                 </div>
-                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                  共 {{ comments.length }} 則社群評價
-                </p>
+                <span class="text-xs text-slate-400 font-medium whitespace-nowrap">{{ comments.length }} 則評價</span>
               </div>
             </div>
 
-            <!-- Rating Breakdown -->
-            <div class="space-y-4 mb-12">
-              <div v-for="n in 5" :key="n" class="flex items-center gap-4 text-sm">
-                <span class="w-10 font-bold text-slate-500 dark:text-slate-400 text-right">{{ 6 - n }} 星</span>
-                <div class="flex-1 h-2.5 bg-slate-200/50 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    class="h-full bg-orange-400 transition-all duration-1000"
-                    :style="{ width: getRatingPercent(6 - n) + '%' }"
-                  ></div>
+            <!-- Breakdown bars -->
+            <div class="flex-1 space-y-2">
+              <div v-for="n in 5" :key="n" class="flex items-center gap-2.5">
+                <span class="w-7 text-right text-xs text-slate-500 dark:text-slate-400 font-semibold flex-shrink-0">{{ 6 - n }}★</span>
+                <div class="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-amber-400 rounded-full transition-all duration-700"
+                    :style="{ width: getRatingPercent(6 - n) + '%' }"></div>
                 </div>
-                <span class="w-12 text-slate-400 dark:text-slate-500 font-medium">
-                  {{ getRatingCount(6 - n) }}
-                </span>
+                <span class="w-5 text-xs text-slate-400 font-medium flex-shrink-0">{{ getRatingCount(6 - n) }}</span>
               </div>
             </div>
 
-            <!-- Your Rating Action -->
-            <div class="pt-8 border-t border-slate-200/50 dark:border-slate-700">
-              <p class="font-bold text-slate-800 dark:text-slate-200 mb-4">
-                您的評分
-              </p>
-              <div class="flex gap-2.5">
-                <button
-                  v-for="star in 5"
-                  :key="star"
-                  @click="submitRating(star)"
-                  class="transition-all hover:scale-125 border-none bg-transparent cursor-pointer p-0.5 group"
-                >
-                  <Star
-                    class="w-8 h-8 transition-colors"
-                    :class="star <= userRating ? 'text-orange-400 fill-current' : 'text-slate-200 group-hover:text-orange-300'"
-                  />
+            <!-- Your rating -->
+            <div class="flex flex-col items-center justify-center sm:border-l sm:border-slate-100 sm:dark:border-slate-700 sm:pl-8 gap-1">
+              <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">給個評分</p>
+              <div class="flex gap-1">
+                <button v-for="star in 5" :key="star" @click="submitRating(star)"
+                  class="border-none bg-transparent cursor-pointer p-0.5 hover:scale-110 transition-transform">
+                  <Star class="w-7 h-7 transition-colors"
+                    :class="star <= userRating ? 'text-amber-400 fill-current' : 'text-slate-200 dark:text-slate-600 hover:text-amber-300'" />
                 </button>
               </div>
-              <p class="text-xs text-slate-400 mt-4 leading-relaxed">
-                分享您的使用體驗，幫助社群發現更好的工具。
-              </p>
+              <p class="text-xs text-slate-400 h-4">{{ userRating > 0 ? `已選 ${userRating} 星` : '' }}</p>
             </div>
           </div>
+        </div>
 
-          <!-- Right Side: Comment Feed -->
-          <div class="lg:w-2/3 p-10 flex flex-col">
-            <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-8">
-              社群討論
-            </h3>
+        <!-- Comment input + list (同一張卡) -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
+          <!-- Input -->
+          <div class="flex gap-3 mb-5">
+            <input
+              v-model="newComment"
+              type="text"
+              placeholder="分享你的使用心得..."
+              class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-sm"
+              @keyup.enter="addComment"
+            >
+            <button @click="addComment"
+              class="px-4 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-1.5 transition-all border-none cursor-pointer text-sm flex-shrink-0">
+              <Send class="w-4 h-4" /> 發佈
+            </button>
+          </div>
 
-            <!-- Comment Input -->
-            <div class="flex gap-4 mb-10 group">
-              <input
-                v-model="newComment"
-                type="text"
-                placeholder="分享您的使用心得或提問..."
-                class="flex-1 rounded-2xl border-2 border-slate-100 dark:border-slate-600 px-6 py-4 outline-none focus:border-primary/20 bg-slate-50/50 dark:bg-slate-700 transition-all font-medium text-slate-700 dark:text-slate-200"
-                @keyup.enter="addComment"
+          <!-- Sort toggle -->
+          <div v-if="comments.length > 0" class="flex items-center gap-2 mb-4">
+            <span class="text-xs text-slate-400 font-medium">排序：</span>
+            <button
+              @click="commentSort = 'desc'; commentPage = 1"
+              class="px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer"
+              :class="commentSort === 'desc'
+                ? 'bg-primary text-white border-primary'
+                : 'bg-transparent border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-primary hover:text-primary'"
+            >
+              ★ 高到低
+            </button>
+            <button
+              @click="commentSort = 'asc'; commentPage = 1"
+              class="px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer"
+              :class="commentSort === 'asc'
+                ? 'bg-primary text-white border-primary'
+                : 'bg-transparent border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-primary hover:text-primary'"
+            >
+              ★ 低到高
+            </button>
+          </div>
+
+          <!-- Empty state -->
+          <div v-if="comments.length === 0" class="py-10 text-center">
+            <MessageSquare class="w-9 h-9 text-slate-200 dark:text-slate-600 mx-auto mb-2" />
+            <p class="text-slate-400 text-sm font-medium">還沒有評價，來當第一個！</p>
+          </div>
+
+          <!-- Comment list: divider style -->
+          <div v-else>
+            <div class="divide-y divide-slate-100 dark:divide-slate-700">
+              <div
+                v-for="(comment, index) in pagedComments"
+                :key="index"
+                class="py-4 first:pt-0"
               >
+                <div class="flex items-center justify-between gap-3 mb-1.5">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <span class="text-primary font-bold text-xs">{{ comment.user?.charAt(0)?.toUpperCase() }}</span>
+                    </div>
+                    <span class="font-bold text-base text-slate-900 dark:text-slate-100">{{ comment.user }}</span>
+                    <span class="text-sm text-slate-400">{{ comment.date }}</span>
+                  </div>
+                  <div class="flex gap-0.5 flex-shrink-0">
+                    <Star v-for="s in 5" :key="s" class="w-3 h-3"
+                      :class="s <= (comment.rating || 5) ? 'text-amber-400 fill-current' : 'text-slate-200 dark:text-slate-600'" />
+                  </div>
+                </div>
+                <p class="text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed pl-9">{{ comment.content }}</p>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="commentPageCount > 1" class="flex items-center justify-between gap-2 mt-5 pt-4 border-t border-slate-100 dark:border-slate-700">
               <button
-                @click="addComment"
-                class="px-8 bg-primary text-white rounded-2xl font-bold hover:bg-primary/90 flex items-center gap-2 transition-all shadow-lg shadow-primary/20 border-none cursor-pointer"
+                @click="commentPage--"
+                :disabled="commentPage === 1"
+                class="px-4 py-2 rounded-xl border text-sm font-semibold transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                :class="commentPage === 1
+                  ? 'border-slate-200 dark:border-slate-600 text-slate-400 bg-transparent'
+                  : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary bg-transparent'"
               >
-                <Send class="w-5 h-5" />
-                發佈
+                ← 上一頁
+              </button>
+
+              <div class="flex items-center gap-1.5">
+                <button
+                  v-for="p in commentPageCount"
+                  :key="p"
+                  @click="commentPage = p"
+                  class="w-8 h-8 rounded-lg text-sm font-bold transition-all cursor-pointer border-none"
+                  :class="p === commentPage
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'"
+                >
+                  {{ p }}
+                </button>
+              </div>
+
+              <button
+                @click="commentPage++"
+                :disabled="commentPage === commentPageCount"
+                class="px-4 py-2 rounded-xl border text-sm font-semibold transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                :class="commentPage === commentPageCount
+                  ? 'border-slate-200 dark:border-slate-600 text-slate-400 bg-transparent'
+                  : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary bg-transparent'"
+              >
+                下一頁 →
               </button>
             </div>
-
-            <!-- Comment List -->
-            <div class="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[450px]">
-              <div
-                v-for="(comment, index) in comments"
-                :key="index"
-                class="p-6 rounded-3xl border border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-700 hover:shadow-md transition-all duration-300 group"
-              >
-                <div class="flex items-center justify-between gap-3 mb-3">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                      {{ comment.user.charAt(0) }}
-                    </div>
-                    <div>
-                      <div class="font-bold text-slate-900 dark:text-slate-100 text-sm">{{ comment.user }}</div>
-                      <div class="text-[10px] text-slate-400 uppercase tracking-tighter">{{ comment.date }}</div>
-                    </div>
-                  </div>
-                  <div class="flex gap-0.5">
-                    <Star v-for="s in 5" :key="s" class="w-3 h-3" :class="s <= comment.rating ? 'text-orange-400 fill-current' : 'text-slate-200 dark:text-slate-600'" />
-                  </div>
-                </div>
-                <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
-                  {{ comment.content }}
-                </p>
-              </div>
-
-              <!-- Empty State -->
-              <div v-if="comments.length === 0" class="py-20 text-center">
-                <Bot class="w-12 h-12 text-slate-200 dark:text-slate-600 mx-auto mb-4" />
-                <p class="text-slate-400 font-medium">目前尚無討論，成為第一個留言的人吧！</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      <section class="mt-16">
-        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
-          <div>
-            <h2 class="text-2xl font-bold text-slate-900 mb-2">
-              或許你會喜歡
-            </h2>
-            <p class="text-slate-500">
-              根據目前瀏覽的工具，推薦你也可以看看這些 AI 工具。
-            </p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <RouterLink
+      <!-- ══════════ RECOMMENDED ══════════ -->
+      <section v-if="recommendedTools.length">
+        <h2 class="section-title">
+          <Tag class="w-5 h-5 text-primary" /> 你可能也喜歡
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <ToolCard
             v-for="item in recommendedTools"
             :key="item.id"
-            :to="`/tool/${item.id}`"
-            class="group no-underline bg-white dark:bg-slate-800 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all"
-          >
-            <div class="flex items-start gap-4 mb-5">
-              <div class="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-700 flex items-center justify-center border border-slate-100 dark:border-slate-600">
-                <img
-                  :src="item.logoUrl"
-                  :alt="item.name"
-                  class="w-10 h-10 object-contain group-hover:scale-110 transition-transform"
-                >
-              </div>
-
-              <div class="flex-1">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">
-                  {{ item.name }}
-                </h3>
-
-                <div class="flex items-center gap-1 text-orange-400 text-sm font-bold mt-1">
-                  <Star class="w-4 h-4 fill-current" />
-                  {{ item.rating }}
-                </div>
-              </div>
-            </div>
-
-            <p class="text-sm text-slate-500 dark:text-slate-400 leading-6 line-clamp-2 mb-5">
-              {{ item.description }}
-            </p>
-
-            <div class="mt-6 pt-5 border-t border-slate-50 dark:border-slate-700 flex items-end justify-between gap-4">
-              <div class="flex flex-wrap gap-2">
-                <span
-                  v-for="tag in item.tags"
-                  :key="tag"
-                  class="px-3 py-1 rounded-lg text-[12px] font-bold"
-                  :class="getTagColor(tag)"
-                >
-                  {{ tag }}
-                </span>
-              </div>
-              
-              <div class="px-6 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/25 whitespace-nowrap group-hover:scale-105 transition-all">
-                查看詳情
-              </div>
-            </div>
-          </RouterLink>
+            v-bind="item"
+            :disableFlip="true"
+            showFavoriteButton
+            :isFavorited="isFavorited(item.id)"
+            @toggleFavorite="toggleFavorite(item)"
+            @click="router.push(`/tool/${item.id}`)"
+          />
         </div>
       </section>
-    </div>
 
-    <div v-else class="max-w-3xl mx-auto text-center py-32 px-4">
-      <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-        <Bot class="w-10 h-10" />
-      </div>
-      <h1 class="text-3xl font-bold text-slate-900 mb-4">
-        找不到此 AI 工具
-      </h1>
-      <p class="text-slate-500 mb-8 text-lg">
-        這款工具可能已經遷移或已被移除。
-      </p>
-      <RouterLink
-        to="/"
-        class="inline-block px-10 py-4 bg-primary text-white rounded-xl font-bold shadow-xl shadow-primary/20 no-underline hover:-translate-y-0.5 transition-all"
-      >
-        返回平台首頁
-      </RouterLink>
     </div>
   </div>
 </template>
 
 <style scoped>
-.glass-card {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1.25rem;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+:global(.dark) .section-title {
+  color: #f1f5f9;
 }
 </style>

@@ -24,6 +24,7 @@ try {
         JOIN user u ON r.UID = u.UID
         WHERE r.tool_ID = :tool_id
         ORDER BY r.comment_time DESC
+        LIMIT 20
     ";
 
     $stmt = $pdo->prepare($query);

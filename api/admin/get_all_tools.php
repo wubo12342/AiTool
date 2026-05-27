@@ -20,7 +20,8 @@ try {
             c.name AS category_name,
             COALESCE((SELECT AVG(stars) FROM tool_reviews WHERE tool_ID = t.tool_ID), 0) AS rating,
             (SELECT COUNT(*) FROM tool_reviews WHERE tool_ID = t.tool_ID) AS review_count,
-            (SELECT COUNT(*) FROM user_likes   WHERE tool_ID = t.tool_ID) AS favorite_count
+            (SELECT COUNT(*) FROM user_likes   WHERE tool_ID = t.tool_ID) AS favorite_count,
+            (SELECT GROUP_CONCAT(TID ORDER BY TID) FROM tool_tag_map WHERE tool_ID = t.tool_ID) AS tag_ids
         FROM ai_tools t
         LEFT JOIN categories c ON t.CID = c.CID
         ORDER BY t.tool_ID DESC
@@ -33,6 +34,9 @@ try {
         $tool['rating']         = round((float)$tool['rating'], 1);
         $tool['review_count']   = (int)$tool['review_count'];
         $tool['favorite_count'] = (int)$tool['favorite_count'];
+        $tool['tag_ids']        = $tool['tag_ids']
+            ? array_map('intval', explode(',', $tool['tag_ids']))
+            : [];
     }
 
     echo json_encode(['tools' => $tools]);

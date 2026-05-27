@@ -22,7 +22,10 @@ try {
             t.video_url,
             t.pricing_plans,
             c.name as category_name,
-            COALESCE((SELECT AVG(stars) FROM tool_reviews WHERE tool_ID = t.tool_ID), 0) as rating
+            COALESCE((SELECT AVG(stars) FROM tool_reviews WHERE tool_ID = t.tool_ID), 0) as rating,
+            (SELECT GROUP_CONCAT(tg.name ORDER BY tg.TID SEPARATOR '||')
+             FROM tool_tag_map ttm JOIN tags tg ON ttm.TID = tg.TID
+             WHERE ttm.tool_ID = t.tool_ID) as feature_tags
         FROM ai_tools t
         LEFT JOIN categories c ON t.CID = c.CID
         WHERE t.tool_ID = :id
@@ -39,7 +42,6 @@ try {
     $tool['id'] = (int)$tool['id'];
     $tool['cid'] = (int)$tool['cid'];
     $tool['rating'] = round((float)$tool['rating'], 1);
-    $tool['tags'] = $tool['category_name'] ? [$tool['category_name']] : [];
 
     if (!$tool['logoUrl']) {
         $tool['logoUrl'] = "https://api.dicebear.com/7.x/identicon/svg?seed=" . urlencode($tool['name']);
@@ -48,6 +50,18 @@ try {
     $plansData = json_decode($tool['pricing_plans'], true);
     $tool['plans'] = isset($plansData['plans']) ? $plansData['plans'] : [];
     $tool['pricing_status'] = $plansData['status'] ?? null;
+
+    // Build tags: [category, pricing_status, ...feature_tags]
+    $tool['tags'] = $tool['category_name'] ? [$tool['category_name']] : [];
+    if ($tool['pricing_status']) {
+        $tool['tags'][] = $tool['pricing_status'];
+    }
+    if ($tool['feature_tags']) {
+        foreach (explode('||', $tool['feature_tags']) as $ft) {
+            if ($ft !== '') $tool['tags'][] = $ft;
+        }
+    }
+    unset($tool['feature_tags']);
     $tool['pricing_last_check'] = $plansData['last_check'] ?? null;
     $tool['pricing_currency'] = $plansData['currency'] ?? 'USD';
 

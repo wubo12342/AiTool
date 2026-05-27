@@ -121,6 +121,26 @@ foreach ($user_messages as $msg) {
     ];
 }
 
+function logTokenUsage($uid, $usage, $model) {
+    if (empty($usage)) return;
+    try {
+        $db = getDB();
+        $stmt = $db->prepare(
+            "INSERT INTO ai_token_log (uid, prompt_tokens, completion_tokens, total_tokens, model)
+             VALUES (?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([
+            $uid,
+            $usage['prompt_tokens']     ?? 0,
+            $usage['completion_tokens'] ?? 0,
+            $usage['total_tokens']      ?? 0,
+            $model
+        ]);
+    } catch (Throwable $e) {
+        error_log('[token_log] ' . $e->getMessage());
+    }
+}
+
 function callOpenAI($messages, $tools) {
     $ch = curl_init('https://api.openai.com/v1/chat/completions');
     $payload = [
@@ -144,6 +164,7 @@ function callOpenAI($messages, $tools) {
 }
 
 $response = callOpenAI($messages, $tools);
+logTokenUsage($decoded['uid'], $response['usage'] ?? null, OPENAI_MODEL);
 
 // S3 — 嚴格白名單：只能呼叫這四個我們定義的 tool function
 // 避免 OpenAI 回應若被 prompt injection 操弄、回傳 phpinfo/system 之類的內建函式名稱
@@ -178,6 +199,7 @@ if (isset($response['choices'][0]['message']['tool_calls'])) {
     }
 
     $final_response = callOpenAI($messages, $tools);
+    logTokenUsage($decoded['uid'], $final_response['usage'] ?? null, OPENAI_MODEL);
     echo json_encode(['content' => $final_response['choices'][0]['message']['content'] ?? '抱歉，AI 暫時無法回答。']);
 } else {
     echo json_encode(['content' => $response['choices'][0]['message']['content'] ?? '抱歉，AI 暫時無法回答。']);

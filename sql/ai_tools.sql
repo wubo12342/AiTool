@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2026-05-13 14:54:40
+-- 產生時間： 2026-05-27 15:04:50
 -- 伺服器版本： 10.4.32-MariaDB
 -- PHP 版本： 8.2.12
 
@@ -28,7 +28,7 @@ USE `ai_tools`;
 --
 -- 資料表結構 `ai_tools`
 --
--- 建立時間： 2026-05-13 12:52:31
+-- 建立時間： 2026-05-26 15:59:39
 --
 
 DROP TABLE IF EXISTS `ai_tools`;
@@ -42,12 +42,6 @@ CREATE TABLE `ai_tools` (
   `video_url` varchar(255) DEFAULT NULL COMMENT '介紹影片連結',
   `pricing_plans` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '格式: {"status": "Freemium", "last_check": "2026-03-25", "plans": [...]}' CHECK (json_valid(`pricing_plans`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- 資料表的關聯 `ai_tools`:
---   `CID`
---       `categories` -> `CID`
---
 
 --
 -- 資料表新增資料前，先清除舊資料 `ai_tools`
@@ -89,7 +83,7 @@ INSERT INTO `ai_tools` (`tool_ID`, `CID`, `name`, `description`, `website_url`, 
 --
 -- 資料表結構 `categories`
 --
--- 建立時間： 2026-05-13 12:52:31
+-- 建立時間： 2026-05-26 15:59:39
 --
 
 DROP TABLE IF EXISTS `categories`;
@@ -98,10 +92,6 @@ CREATE TABLE `categories` (
   `name` varchar(100) NOT NULL COMMENT '分類名稱 (如: 圖像生成、程式助手)',
   `description` text DEFAULT NULL COMMENT '分類詳細描述'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- 資料表的關聯 `categories`:
---
 
 --
 -- 資料表新增資料前，先清除舊資料 `categories`
@@ -127,7 +117,7 @@ INSERT INTO `categories` (`CID`, `name`, `description`) VALUES
 --
 -- 資料表結構 `tags`
 --
--- 建立時間： 2026-05-13 12:52:31
+-- 建立時間： 2026-05-26 15:59:39
 --
 
 DROP TABLE IF EXISTS `tags`;
@@ -137,20 +127,32 @@ CREATE TABLE `tags` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- 資料表的關聯 `tags`:
---
-
---
 -- 資料表新增資料前，先清除舊資料 `tags`
 --
 
 TRUNCATE TABLE `tags`;
+--
+-- 傾印資料表的資料 `tags`
+--
+
+INSERT INTO `tags` (`TID`, `name`) VALUES
+(1,  '有免費方案'),
+(2,  '支援中文'),
+(3,  '有手機版'),
+(4,  '支援檔案上傳'),
+(5,  '即時網路搜尋'),
+(6,  '適合學習'),
+(7,  '可匯出PDF/PPT'),
+(8,  '支援團隊協作'),
+(9,  '有API'),
+(10, '資料不參與訓練');
+
 -- --------------------------------------------------------
 
 --
 -- 資料表結構 `tool_reviews`
 --
--- 建立時間： 2026-05-13 12:52:31
+-- 建立時間： 2026-05-26 15:59:39
 --
 
 DROP TABLE IF EXISTS `tool_reviews`;
@@ -162,14 +164,6 @@ CREATE TABLE `tool_reviews` (
   `comment` text DEFAULT NULL COMMENT '使用者心得',
   `comment_time` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- 資料表的關聯 `tool_reviews`:
---   `UID`
---       `user` -> `UID`
---   `tool_ID`
---       `ai_tools` -> `tool_ID`
---
 
 --
 -- 資料表新增資料前，先清除舊資料 `tool_reviews`
@@ -205,14 +199,30 @@ INSERT INTO `tool_reviews` (`review_ID`, `UID`, `tool_ID`, `stars`, `comment`, `
 (22, 1, 22, 5, ' ', '2026-05-06 23:49:26'),
 (23, 1, 23, 5, ' ', '2026-05-06 23:49:26'),
 (24, 1, 24, 5, '（僅給予星級評分）', '2026-05-06 23:54:42'),
-(34, 2, 24, 3, 'aa', '2026-05-06 23:55:01');
+(34, 2, 24, 3, 'aa', '2026-05-06 23:55:01'),
+-- ChatGPT 評論（tool_ID=1），褒貶皆有，適合 AI 留言分析工具使用
+(35, 3,  1, 5, '用了 ChatGPT 快一年，真的大幅提升我的工作效率。寫報告、整理資料、翻譯英文文件基本上每天都在用。最喜歡它能理解上下文，不需要每次重新解釋背景，對話體驗非常流暢。付費的 Plus 方案很值得，圖像生成加上深度研究功能讓它成為全能助手。', '2026-01-15 09:23:41'),
+(36, 4,  1, 4, '整體來說很好用，尤其是寫作輔助和程式碼除錯方面表現優秀。不過有時候會「幻覺」，給出看起來合理但實際上錯誤的答案，特別是數學計算和最新資訊需要小心。建議搭配其他工具使用，不要完全依賴輸出結果。扣一星是因為免費版限制偏多。', '2026-01-28 14:55:19'),
+(37, 5,  1, 2, '作為學生，免費版根本不夠用。用到一半就說達到上限，要等好幾個小時才能繼續。更讓我失望的是，數學解題步驟有幾次是錯的，我照著寫了作業被老師糾正。若要付費的話，$20 美金一個月對學生來說負擔很重，希望有學生優惠方案。', '2026-02-03 16:42:33'),
+(38, 6,  1, 5, '身為上班族，ChatGPT 幫我節省了大量重複性工作的時間。每天用它草擬 Email、整理會議記錄、分析資料，原本要花兩三小時的工作現在半小時內搞定。特別推薦 Canvas 寫作模式，可以直接在文件上修改，非常直覺。完全值得每個月的訂閱費。', '2026-02-17 11:08:27'),
+(39, 7,  1, 3, '對我來說算是一般般。簡單問答和文字整理還好，但遇到需要深度分析或特定領域的問題，答案就很表面。知識截止日期也讓我在查詢最新資訊時常常失望。不過考量到免費版的功能廣度，整體還是可以接受的日常工具。', '2026-03-05 19:30:14'),
+(40, 8,  1, 5, '程式設計師必備！用它做 Code Review、寫測試、解釋複雜 API 文件，效率提升超多。遇到難以 Debug 的錯誤時，把錯誤訊息和相關程式碼貼進去，通常幾秒就找出問題。雖然偶爾有小錯誤，但整體而言是我用過最強的 AI 程式助手，大力推薦。', '2026-03-12 22:15:09'),
+(41, 9,  1, 1, '非常失望！我用它輔助醫療資訊查詢，結果給了幾個嚴重錯誤的藥物交互作用資訊。幸好另外查證才沒出事。對高風險領域的使用，ChatGPT 的錯誤可能造成真正的危害。每次問到敏感議題都被回避，實用性大打折扣，不建議用在專業醫療場景。', '2026-03-22 08:44:51'),
+(42, 10, 1, 4, '用來學英文真的很有幫助！可以請它扮演英文老師、糾正語法錯誤、解釋慣用語，比傳統語言學習 App 靈活很多。對話練習的情境模擬尤其實用。唯一缺點是回答有時候太長，需要額外叫它「簡短說明」才能得到精簡的答案，有點浪費對話次數。', '2026-03-31 15:22:38'),
+(43, 11, 1, 5, '退休後開始學習使用 AI 工具，ChatGPT 是我接觸過最容易上手的一個。對話介面很直覺，就像和人聊天一樣自然。幫我整理旅遊計畫、查詢健康資訊、甚至協助寫給孫子的故事，樣樣都行。中文支援也很完整，不怕語言障礙，真心推薦給長輩使用。', '2026-04-08 10:11:55'),
+(44, 12, 1, 2, '資料隱私讓我很擔心。我不小心把公司機密文件貼進去問問題，後來才意識到資料可能被用來訓練模型。雖然 OpenAI 說有保護措施，但沒有特別設定的情況下風險還是存在。公司已禁止員工使用，希望後續能有更透明的資料處理說明和更簡便的隱私設定。', '2026-04-15 20:58:41'),
+(45, 13, 1, 4, '設計師的好幫手！用它發想創意概念、撰寫品牌文案、生成設計簡報大綱，省去很多腦力激盪的時間。搭配 DALL-E 圖像生成功能更強大，可以快速製作概念圖。缺點是創意建議有時候太「安全」，缺乏突破性想法，需要多次引導提示才能得到真正有趣的回應。', '2026-04-22 13:45:07'),
+(46, 14, 1, 3, '用了幾個月，功能很全但也很雜亂。記得哪個功能在哪就要花時間。免費版和付費版的差距太大，感覺免費版只是讓你嚐個味道，然後就要掏錢。以台灣薪資水準，$20 美金每個月其實負擔不小，希望能推出更平價的中間方案或是學生費率。', '2026-05-02 17:34:22'),
+(47, 15, 1, 1, '叫它寫文章時，輸出的內容充斥 AI 腔調，一眼就看出是機器寫的，用在學術寫作馬上被教授識破。更嚴重的是，它引用的「論文來源」很多根本不存在，是自己捏造的。這個幻覺問題官方早就知道卻一直沒有根本解決，嚴重誤導不知情的用戶，絕對要小心。', '2026-05-10 09:27:33'),
+(48, 16, 1, 5, '小型創業者的神器！用它協助起草商業計畫書、分析市場競爭對手、撰寫社群媒體文案，節省大量請顧問的費用。最讓我驚豔的是它能理解問題脈絡，給出非常具體可行的建議。每個月的 Plus 費用比起能省下的時間和成本，完全是超值的投資，強力推薦給新創團隊。', '2026-05-18 11:42:16'),
+(49, 17, 1, 4, '在翻譯和多語言處理方面表現出色。我工作需要處理中英日三語文件，ChatGPT 的翻譯品質很高，能保留原文語氣和專業術語。對比其他翻譯工具，它更能理解語境而非逐字翻譯。扣一星是因為對話記憶有長度限制，長對話之後它有時候會「忘記」前面討論過的重要內容。', '2026-05-20 16:08:44');
 
 -- --------------------------------------------------------
 
 --
 -- 資料表結構 `tool_tag_map`
 --
--- 建立時間： 2026-05-13 12:52:31
+-- 建立時間： 2026-05-26 15:59:39
 --
 
 DROP TABLE IF EXISTS `tool_tag_map`;
@@ -222,24 +232,68 @@ CREATE TABLE `tool_tag_map` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- 資料表的關聯 `tool_tag_map`:
---   `tool_ID`
---       `ai_tools` -> `tool_ID`
---   `TID`
---       `tags` -> `TID`
---
-
---
 -- 資料表新增資料前，先清除舊資料 `tool_tag_map`
 --
 
 TRUNCATE TABLE `tool_tag_map`;
+--
+-- 傾印資料表的資料 `tool_tag_map`
+--
+
+INSERT INTO `tool_tag_map` (`tool_ID`, `TID`) VALUES
+-- ChatGPT: 有免費方案, 支援中文, 有手機版, 支援檔案上傳, 即時網路搜尋, 有API
+(1,1),(1,2),(1,3),(1,4),(1,5),(1,9),
+-- Claude: 有免費方案, 支援中文, 支援檔案上傳, 有API
+(2,1),(2,2),(2,4),(2,9),
+-- Gemini: 有免費方案, 支援中文, 有手機版, 即時網路搜尋
+(3,1),(3,2),(3,3),(3,5),
+-- Adobe Firefly: 有免費方案, 有API
+(5,1),(5,9),
+-- DALL-E 3: 有免費方案, 有API
+(6,1),(6,9),
+-- Runway: 有免費方案
+(7,1),
+-- CapCut: 有免費方案, 支援中文, 有手機版, 可匯出PDF/PPT
+(8,1),(8,2),(8,3),(8,7),
+-- Kling AI: 有免費方案, 支援中文, 有手機版
+(9,1),(9,2),(9,3),
+-- GitHub Copilot: 有免費方案, 有API, 資料不參與訓練
+(10,1),(10,9),(10,10),
+-- Cursor: 有免費方案
+(11,1),
+-- Tabnine: 有API, 資料不參與訓練
+(12,9),(12,10),
+-- ElevenLabs: 有免費方案, 有API
+(13,1),(13,9),
+-- Murf AI: 有免費方案
+(14,1),
+-- Suno: 有免費方案
+(15,1),
+-- Gamma: 有免費方案, 支援中文, 可匯出PDF/PPT
+(16,1),(16,2),(16,7),
+-- Beautiful.ai: 有免費方案, 可匯出PDF/PPT, 支援團隊協作
+(17,1),(17,7),(17,8),
+-- Canva AI: 有免費方案, 支援中文, 有手機版, 可匯出PDF/PPT, 支援團隊協作
+(18,1),(18,2),(18,3),(18,7),(18,8),
+-- Notion AI: 有免費方案, 支援中文, 有手機版, 支援檔案上傳, 適合學習, 支援團隊協作, 有API
+(19,1),(19,2),(19,3),(19,4),(19,6),(19,8),(19,9),
+-- Julius AI: 有免費方案, 支援檔案上傳
+(20,1),(20,4),
+-- Perplexity AI: 有免費方案, 支援中文, 支援檔案上傳, 即時網路搜尋, 適合學習
+(21,1),(21,2),(21,4),(21,5),(21,6),
+-- DeepL: 有免費方案, 適合學習, 有API
+(22,1),(22,6),(22,9),
+-- Microsoft Translator: 有免費方案, 支援中文, 有手機版, 適合學習
+(23,1),(23,2),(23,3),(23,6),
+-- Reverso: 有免費方案, 支援中文, 適合學習
+(24,1),(24,2),(24,6);
+
 -- --------------------------------------------------------
 
 --
 -- 資料表結構 `user`
 --
--- 建立時間： 2026-05-13 12:52:31
+-- 建立時間： 2026-05-26 15:59:39
 --
 
 DROP TABLE IF EXISTS `user`;
@@ -253,10 +307,6 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- 資料表的關聯 `user`:
---
-
---
 -- 資料表新增資料前，先清除舊資料 `user`
 --
 
@@ -267,14 +317,29 @@ TRUNCATE TABLE `user`;
 
 INSERT INTO `user` (`UID`, `username`, `password_hash`, `role`, `system_prompt`, `created_at`) VALUES
 (1, '使用者', '$2y$10$1fyk/JxOvcm3CIbZtI2QRuFlO54wwWyxqfGNwtyj2yl2ZILz/cPci', 0, NULL, '2026-05-06 23:49:09'),
-(2, 'aa', '$2y$10$lAlkvp.5akPn/v726hA9cOqWcpiFdRN61slwjhwgx4WPhZCVE1DiG', 0, '對話都加上我是可愛的小助手', '2026-05-06 23:49:46');
+(2, 'aa', '$2y$10$lAlkvp.5akPn/v726hA9cOqWcpiFdRN61slwjhwgx4WPhZCVE1DiG', 1, '對話都加上我是可愛的小助手', '2026-05-06 23:49:46'),
+(3,  'user01', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-01-10 08:30:00'),
+(4,  'user02', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-01-15 09:00:00'),
+(5,  'user03', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-01-20 14:00:00'),
+(6,  'user04', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-01-25 10:00:00'),
+(7,  'user05', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-02-01 11:00:00'),
+(8,  'user06', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-02-05 16:00:00'),
+(9,  'user07', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-02-10 09:30:00'),
+(10, 'user08', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-02-15 13:00:00'),
+(11, 'user09', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-02-20 20:00:00'),
+(12, 'user10', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-03-01 08:00:00'),
+(13, 'user11', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-03-08 15:30:00'),
+(14, 'user12', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-03-15 17:00:00'),
+(15, 'user13', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-03-22 10:00:00'),
+(16, 'user14', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-04-01 12:00:00'),
+(17, 'user15', '$2y$10$1m/OgPnMWOyVG.58Lghnxegys4Cm7O.wPSlQSnDjmbxU6.wFrd/my', 0, NULL, '2026-04-10 09:00:00');
 
 -- --------------------------------------------------------
 
 --
 -- 資料表結構 `user_likes`
 --
--- 建立時間： 2026-05-13 12:52:31
+-- 建立時間： 2026-05-26 15:59:39
 --
 
 DROP TABLE IF EXISTS `user_likes`;
@@ -285,18 +350,33 @@ CREATE TABLE `user_likes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- 資料表的關聯 `user_likes`:
---   `UID`
---       `user` -> `UID`
---   `tool_ID`
---       `ai_tools` -> `tool_ID`
---
-
---
 -- 資料表新增資料前，先清除舊資料 `user_likes`
 --
 
 TRUNCATE TABLE `user_likes`;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `ai_token_log`
+--
+
+DROP TABLE IF EXISTS `ai_token_log`;
+CREATE TABLE `ai_token_log` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` int(11) DEFAULT NULL,
+  `prompt_tokens` int(11) NOT NULL DEFAULT 0,
+  `completion_tokens` int(11) NOT NULL DEFAULT 0,
+  `total_tokens` int(11) NOT NULL DEFAULT 0,
+  `model` varchar(50) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`log_id`),
+  KEY `uid` (`uid`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+TRUNCATE TABLE `ai_token_log`;
+
 --
 -- 已傾印資料表的索引
 --
@@ -370,19 +450,19 @@ ALTER TABLE `categories`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `tags`
 --
 ALTER TABLE `tags`
-  MODIFY `TID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `TID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `tool_reviews`
 --
 ALTER TABLE `tool_reviews`
-  MODIFY `review_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `review_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `user`
 --
 ALTER TABLE `user`
-  MODIFY `UID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `UID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- 已傾印資料表的限制式
