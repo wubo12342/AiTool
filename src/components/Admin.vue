@@ -298,34 +298,6 @@ const starsArray = (n) => Array.from({ length: 5 }, (_, i) => i < n)
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-      <!-- Stats Cards (hidden on tokens tab) -->
-      <div v-if="activeTab !== 'tokens'" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div
-          v-for="card in [
-            { label: 'AI 工具',  value: stats.tools,      icon: Wrench,       color: 'blue' },
-            { label: '評論數',   value: stats.reviews,    icon: MessageSquare, color: 'violet' },
-            { label: '用戶數',   value: stats.users,      icon: Users,         color: 'emerald' },
-            { label: '分類數',   value: stats.categories, icon: Package,       color: 'orange' }
-          ]"
-          :key="card.label"
-          class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm"
-        >
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-sm font-bold text-slate-500 dark:text-slate-400">{{ card.label }}</span>
-            <div :class="{
-              'bg-blue-50 dark:bg-blue-900/30 text-blue-500':     card.color === 'blue',
-              'bg-violet-50 dark:bg-violet-900/30 text-violet-500': card.color === 'violet',
-              'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500': card.color === 'emerald',
-              'bg-orange-50 dark:bg-orange-900/30 text-orange-500': card.color === 'orange',
-            }" class="w-9 h-9 rounded-xl flex items-center justify-center">
-              <component :is="card.icon" class="w-5 h-5" />
-            </div>
-          </div>
-          <p class="text-4xl font-black text-slate-900 dark:text-slate-100">{{ card.value }}</p>
-        </div>
-      </div>
-
       <!-- ═══════════════ TOOLS TAB ═══════════════ -->
       <div v-if="activeTab === 'tools'">
         <div class="flex flex-col sm:flex-row gap-3 mb-6">
