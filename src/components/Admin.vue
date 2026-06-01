@@ -311,6 +311,12 @@ const starsArray = (n) => Array.from({ length: 5 }, (_, i) => i < n)
             >
           </div>
           <button
+            @click="fetchTools"
+            class="flex items-center gap-2 px-5 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary transition-all cursor-pointer shadow-sm whitespace-nowrap"
+          >
+            <RefreshCw class="w-4 h-4" /> 刷新
+          </button>
+          <button
             @click="openAddForm"
             class="flex items-center gap-2 px-6 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-primary/20 border-none cursor-pointer whitespace-nowrap"
           >
@@ -583,24 +589,6 @@ const starsArray = (n) => Array.from({ length: 5 }, (_, i) => i < n)
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': tokenLoading }" />
             刷新資料
           </button>
-        </div>
-
-        <!-- Summary cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div
-            v-for="card in [
-              { label: '今日呼叫次數',  value: tokenToday.calls,       sub: '累計 ' + (tokenTotals.calls      || 0) + ' 次',  color: 'blue' },
-              { label: '今日輸入 Token', value: tokenToday.prompt,      sub: '累計 ' + (tokenTotals.prompt     || 0),          color: 'violet' },
-              { label: '今日輸出 Token', value: tokenToday.completion,  sub: '累計 ' + (tokenTotals.completion || 0),          color: 'emerald' },
-              { label: '今日總 Token',   value: tokenToday.total,       sub: '累計 ' + (tokenTotals.total      || 0),          color: 'orange' }
-            ]"
-            :key="card.label"
-            class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm"
-          >
-            <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">{{ card.label }}</p>
-            <p class="text-3xl font-black text-slate-900 dark:text-slate-100">{{ (card.value || 0).toLocaleString() }}</p>
-            <p class="text-sm font-medium text-slate-400 dark:text-slate-500 mt-1">{{ card.sub }}</p>
-          </div>
         </div>
 
         <!-- Log table -->

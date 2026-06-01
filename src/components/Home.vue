@@ -171,55 +171,6 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Popular AI Tools -->
-      <section id="tools-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-          <div>
-            <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ sectionTitle }}</h2>
-            <p class="text-slate-500 dark:text-slate-400">當前社區評分最高與使用最廣泛的工具。</p>
-          </div>
-
-          <div class="flex items-center gap-4 w-full md:w-auto">
-            <select
-              v-model="currentSort"
-              @change="handleSortChange"
-              class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
-            >
-              <option value="rating">依評分高低排序</option>
-              <option value="reviews">依留言數量排序</option>
-            </select>
-
-            <button 
-              v-if="searchQuery || currentCid"
-              @click="searchQuery = ''; currentCid = ''; fetchTools()"
-              class="text-primary font-semibold flex items-center gap-1 hover:underline no-underline bg-transparent border-none cursor-pointer whitespace-nowrap"
-            >
-              重設搜尋
-            </button>
-          </div>
-        </div>
-
-        <!-- 錯誤訊息提示 -->
-        <div v-if="apiError" class="mb-8 p-4 bg-orange-50 border border-orange-200 text-orange-700 rounded-2xl text-center text-sm">
-          <strong>偵錯資訊：</strong> {{ apiError }} <br>
-          <small>請確認 XAMPP Apache 埠號是否正確，目前嘗試連接的是 8080。</small>
-        </div>
-
-        <div v-if="isLoading" class="flex justify-center items-center py-20 col-span-full">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <ToolCard
-            v-for="tool in popularTools"
-            :key="tool.id"
-            v-bind="tool"
-            showFavoriteButton
-            :isFavorited="isFavorited(tool.id)"
-            @toggleFavorite="toggleFavorite(tool)"
-          />
-        </div>
-      </section>
 
       <!-- Category Entry Section -->
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200/50 dark:border-slate-700/50">
@@ -273,82 +224,6 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Persona Section -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          <div>
-            <span class="text-primary font-bold tracking-widest uppercase text-sm">專屬推薦</span>
-
-            <h2 class="text-4xl font-bold text-slate-900 dark:text-slate-100 mt-4 mb-6 leading-tight">
-              為不同身分的您，量身打造工具清單。
-            </h2>
-
-            <div class="space-y-6">
-              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-lg transition-all cursor-default">
-                <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary flex-shrink-0">
-                  <GraduationCap class="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 class="font-bold text-slate-900 dark:text-slate-100">學生族群</h4>
-                  <p class="text-slate-500 dark:text-slate-400">論文摘要、語言學習、數學解題助手。</p>
-                </div>
-              </div>
-
-              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-lg transition-all cursor-default">
-                <div class="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 flex-shrink-0">
-                  <Briefcase class="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 class="font-bold text-slate-900 dark:text-slate-100">上班族</h4>
-                  <p class="text-slate-500 dark:text-slate-400">會議紀錄、PPT 自動生成、Excel 專家。</p>
-                </div>
-              </div>
-
-              <div class="flex gap-4 p-4 rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-lg transition-all cursor-default">
-                <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 flex-shrink-0">
-                  <PenTool class="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 class="font-bold text-slate-900 dark:text-slate-100">創作者</h4>
-                  <p class="text-slate-500 dark:text-slate-400">社群貼文、SEO 優化、Podcast 全自動後製。</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="relative">
-            <div class="aspect-square rounded-3xl overflow-hidden shadow-2xl">
-              <img
-                src="https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?auto=format&fit=crop&q=80&w=1000"
-                class="w-full h-full object-cover"
-                alt="AI tools workspace"
-              >
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- CTA Section -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div class="bg-gradient-to-br from-primary to-primary/80 rounded-[2.5rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl shadow-primary/20">
-          <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
-          <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
-
-          <h2 class="text-3xl md:text-5xl font-bold text-white mb-8 relative z-10 leading-tight">
-            如果您有更好的 AI 工具，<br>歡迎推薦給我們！
-          </h2>
-
-          <div class="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-            <button class="bg-cta hover:bg-cta/90 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-cta/20 transition-all cursor-pointer border border-white/10">
-              立即投稿工具
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <footer class="py-12 text-center text-slate-400/80 dark:text-slate-500/80 mt-12 bg-transparent">
-        <p>&copy; 2026 AI Hub. 專業 AI 工具導航門戶</p>
-      </footer>
     </div>
   </div>
 </template>

@@ -8,7 +8,12 @@
       "Bash(Select-Object Name, Mode)",
       "Bash(grep -E \"\\\\.php$\")",
       "Bash(Remove-Item \"d:\\\\xampp\\\\htdocs\\\\AiTool\\\\sql\\\\tags_seed.sql\")",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(Get-ChildItem -Path \"d:\\\\xampp\\\\htdocs\\\\AiTool\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(git -C \"d:/xampp/htdocs/AiTool\" log --oneline)"
     ]
   }
 }
