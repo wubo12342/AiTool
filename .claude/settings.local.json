@@ -13,7 +13,15 @@
       "Bash(Select-Object -Property FullName, PSIsContainer)",
       "Bash(Sort-Object FullName)",
       "Bash(Format-Table -AutoSize)",
-      "Bash(git -C \"d:/xampp/htdocs/AiTool\" log --oneline)"
+      "Bash(git -C \"d:/xampp/htdocs/AiTool\" log --oneline)",
+      "Bash(Get-ChildItem -Path \"d:\\\\xampp\\\\htdocs\\\\AiTool\" -Recurse -Depth 3)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(ConvertTo-Json)",
+      "PowerShell(head -100)",
+      "Bash(npm run *)",
+      "Bash(php -l api/admin/get_tool_news.php)",
+      "Bash(php -l api/admin/dismiss_tool_news.php)",
+      "Bash(node -e \"const icons = require\\('lucide-vue-next'\\); console.log\\(['Twitter','Globe','Newspaper','Megaphone','Rss'].filter\\(n => icons[n]\\).join\\(', '\\)\\)\")"
     ]
   }
 }

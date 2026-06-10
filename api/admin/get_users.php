@@ -21,6 +21,7 @@ try {
     $users = $stmt->fetchAll();
     foreach ($users as &$u) {
         $u['uid']            = (int)$u['uid'];
+        $u['role']           = (int)$u['role'];
         $u['review_count']   = (int)$u['review_count'];
         $u['favorite_count'] = (int)$u['favorite_count'];
     }

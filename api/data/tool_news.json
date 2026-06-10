@@ -1,0 +1,43 @@
+{
+  "news": [
+    {
+      "id": "news_001",
+      "type": "new_tool",
+      "platform": "twitter",
+      "author_name": "Perplexity AI",
+      "author_handle": "@perplexity_ai",
+      "avatar_url": "https://www.google.com/s2/favicons?domain=perplexity.ai&sz=128",
+      "content": "全新升級！Perplexity 結合即時網路搜尋與大型語言模型，回答問題時會附上來源連結，適合資料查證與研究。免費版即可使用，建議分類：資料整理。",
+      "related_tool_name": null,
+      "source_url": "https://www.perplexity.ai",
+      "posted_at": "2026-06-08 09:12",
+      "tags": ["新工具發現"]
+    },
+    {
+      "id": "news_002",
+      "type": "new_tool",
+      "platform": "twitter",
+      "author_name": "Suno",
+      "author_handle": "@SunoMusic",
+      "avatar_url": "https://www.google.com/s2/favicons?domain=suno.com&sz=128",
+      "content": "輸入歌詞與風格描述，幾秒鐘內生成完整歌曲（含人聲與伴奏）！免費版每日有限額度，付費方案最高 30 美元/月，建議分類：語音生成。",
+      "related_tool_name": null,
+      "source_url": "https://suno.com",
+      "posted_at": "2026-06-08 09:15",
+      "tags": ["新工具發現"]
+    },
+    {
+      "id": "news_003",
+      "type": "tool_update",
+      "platform": "website",
+      "author_name": "OpenAI 官方公告",
+      "author_handle": "openai.com/chatgpt/pricing",
+      "avatar_url": "https://www.google.com/s2/favicons?domain=openai.com&sz=128",
+      "content": "ChatGPT Plus 方案調整：Deep Research 額度由每月 10 次提升為 15 次，並新增「Agent Mode」可自動完成多步驟任務。建議管理員前往官網確認後更新工具資料。",
+      "related_tool_name": "ChatGPT",
+      "source_url": "https://openai.com/chatgpt/pricing",
+      "posted_at": "2026-06-09 22:40",
+      "tags": ["價格調整", "工具更新"]
+    }
+  ]
+}
